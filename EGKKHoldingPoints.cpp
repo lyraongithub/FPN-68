@@ -9,13 +9,13 @@
 //#define new DEBUG_NEW
 //#endif
 
-CEGKKHoldingPointsPlugin* pMyPlugIn = NULL;
+CFPNPlugin* pMyPlugIn = NULL;
 
 // added stuff
 
 void __declspec (dllexport) EuroScopePlugInInit(EuroScopePlugIn::CPlugIn** ppPlugInInstance) {
 	// allocate
-	*ppPlugInInstance = pMyPlugIn = new CEGKKHoldingPointsPlugin();
+	*ppPlugInInstance = pMyPlugIn = new CFPNPlugin();
 }
 
 void __declspec (dllexport) EuroScopePlugInExit(void) {
