@@ -205,6 +205,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="CFPNRadarScreen.cpp" />
+    <ClCompile Include="CFPNRadarTarget.cpp" />
     <ClCompile Include="EGKKHoldingPoints.cpp" />
     <ClCompile Include="EGKKHoldingPointsPlugin.cpp" />
     <ClCompile Include="pch.cpp">
@@ -220,6 +221,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CFPNRadarScreen.h" />
+    <ClInclude Include="CFPNRadarTarget.h" />
     <ClInclude Include="Constant.h" />
     <ClInclude Include="EGKKHoldingPointsPlugin.h" />
     <ClInclude Include="EuroScopePlugIn.h" />

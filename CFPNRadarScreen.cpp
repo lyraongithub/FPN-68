@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "CFPNRadarScreen.h"
+#include "CFPNRadarTarget.h"
 #define _USE_MATH_DEFINES
 #include <math.h>
 
@@ -38,14 +39,59 @@ void CFPNRadarScreen::OnRefresh(HDC hDC, int Phase) {
 	glideslopeArea.bottom -= 30;
 	trackArea.top += 30;
 
-	int range = 10;
+	int range = 15;
 
-	drawGSAxes(&dc, glideslopeArea);
-	drawTrackAxes(&dc, trackArea);
 	drawVerticalScale(&dc, glideslopeArea, trackArea, range);
 	drawGlidepathAndHorizontalTicks(&dc, glideslopeArea, trackArea, range, 3.0f);
+	drawGSAxes(&dc, glideslopeArea);
+	drawTrackAxes(&dc, trackArea);
 
 	drawInfoText(&dc, glideslopeArea.left + 80, glideslopeArea.bottom - 10);
+
+	EuroScopePlugIn::CPosition runwayThreshold;
+	runwayThreshold.LoadFromStrings("W000.10.19.000", "N051.09.02.420");
+
+	EuroScopePlugIn::CPosition otherThreshold;
+	otherThreshold.LoadFromStrings("W000.12.24.520", "N051.08.45.120");
+
+	std::vector<std::string> foundCallsigns = std::vector<std::string>();
+
+	for (EuroScopePlugIn::CRadarTarget target = GetPlugIn()->RadarTargetSelectFirst(); target.IsValid(); target = GetPlugIn()->RadarTargetSelectNext(target)) {
+		EuroScopePlugIn::CPosition pos = target.GetPosition().GetPosition();
+		if (pos.DistanceTo(runwayThreshold) > range * 1.5) continue;
+
+		int altitude = target.GetPosition().GetPressureAltitude();
+		float hdgToRunway = pos.DirectionTo(runwayThreshold);
+		float trackDeviationAngle = runwayThreshold.DirectionTo(otherThreshold) - hdgToRunway;
+
+		if (abs(trackDeviationAngle) > 8) continue;
+
+		std::string callsign = target.GetCallsign();
+		foundCallsigns.push_back(callsign);
+
+		bool found = false;
+		std::vector<CFPNRadarTarget> *prevTargets = ((CFPNPlugin*)GetPlugIn())->getPreviousTargets();
+		for (int i = 0; i < prevTargets->size(); i++) {
+			if ((prevTargets->at(i)).callsign == callsign) {
+				(prevTargets->at(i)).updatePosition(pos, altitude);
+				(prevTargets->at(i)).draw(&dc);
+
+				found = true;
+				break;
+			}
+		}
+		if (!found) {
+			CFPNRadarTarget targetPlot = CFPNRadarTarget(callsign, pos, altitude, runwayThreshold, runwayThreshold.DirectionTo(otherThreshold), range, 3.0f, glideslopeArea, trackArea);
+			targetPlot.draw(&dc);
+			prevTargets->push_back(targetPlot);
+		}
+	}
+
+	/*EuroScopePlugIn::CPosition pos;
+	pos.LoadFromStrings("E000.01.00.319", "N051.10.17.164");
+	int altitude = 3000;
+	CFPNRadarTarget targetPlot = CFPNRadarTarget(pos, altitude, runwayThreshold, runwayThreshold.DirectionTo(otherThreshold), range, 3.0f, glideslopeArea, trackArea);
+	targetPlot.draw(&dc, (CFPNPlugin*)GetPlugIn());*/
 
 	dc.Detach();
 }
@@ -60,7 +106,7 @@ void CFPNRadarScreen::drawGSAxes(CDC *pDC, CRect area) {
 	
 	// X Axis
 	int xAxisHeight = area.bottom + (area.top - area.bottom) / 9;
-	int xAxisLeft = area.left + 20;
+	int xAxisLeft = area.left + X_AXIS_OFFSET;
 	pDC->MoveTo(xAxisLeft, xAxisHeight);
 	pDC->LineTo(area.right, xAxisHeight);
 }
@@ -75,7 +121,7 @@ void CFPNRadarScreen::drawTrackAxes(CDC* pDC, CRect area) {
 
 	// X Axis
 	int xAxisHeight = area.CenterPoint().y;
-	int xAxisLeft = area.left + 20;
+	int xAxisLeft = area.left + X_AXIS_OFFSET;
 	pDC->MoveTo(xAxisLeft, xAxisHeight);
 	pDC->LineTo(area.right, xAxisHeight);
 }
@@ -85,7 +131,7 @@ void CFPNRadarScreen::drawVerticalScale(CDC* pDC, CRect glideslopeArea, CRect tr
 	pDC->SelectObject(&axesPen);
 
 	CFont font;
-	font.CreatePointFont(100, L"Courier New", pDC);
+	font.CreatePointFont(100, L"Courier New Bold", pDC);
 	pDC->SetTextColor(AXES_COLOUR);
 	pDC->SetTextAlign(TA_RIGHT);
 	auto* defFont = pDC->SelectObject(&font);
@@ -121,7 +167,7 @@ void CFPNRadarScreen::drawHorizontalScale(CDC* pDC, CRect glideslopeArea, CRect 
 	pDC->SelectObject(&axesPen);
 
 	CFont font;
-	font.CreatePointFont(100, L"Courier New", pDC);
+	font.CreatePointFont(100, L"Courier New Bold", pDC);
 	pDC->SetTextColor(AXES_COLOUR);
 	pDC->SetTextAlign(TA_RIGHT);
 	auto* defFont = pDC->SelectObject(&font);
@@ -136,25 +182,42 @@ void CFPNRadarScreen::drawGlidepathAndHorizontalTicks(CDC* pDC, CRect glideslope
 	pDC->SelectObject(&glideslopePen);
 
 	int xAxisHeight = glideslopeArea.bottom + (glideslopeArea.top - glideslopeArea.bottom) / 9;
-	int xAxisLeft = glideslopeArea.left + 20;
+	int xAxisLeft = glideslopeArea.left + X_AXIS_OFFSET;
 
 	int topOfGS = xAxisHeight + (tan(angle * (M_PI / 180)) * 6076.0f * (range / 3000.0f) * (double)((glideslopeArea.top - glideslopeArea.bottom) * 2 / 9));
 
 	pDC->MoveTo(xAxisLeft, xAxisHeight);
 	pDC->LineTo(glideslopeArea.right, topOfGS);
 
+	// Track paths @ 1.25 and 3 degrees
+	CPen trackDeviationPen(0, 1, TRACK_DEVIATION_COLOUR);
+	pDC->SelectObject(&trackDeviationPen);
+
+	int trackXAxisHeight = trackArea.CenterPoint().y;
+	int trackXAxisLeft = trackArea.left + X_AXIS_OFFSET;
+
+	for (int i = 0; i < 4; i++) {
+		float angle;
+		if (i == 0) angle = 3.0f;
+		else if (i == 1) angle = 1.25f;
+		else if (i == 2) angle = -1.25f;
+		else if (i == 3) angle = -3.0f;
+
+		int trackOffset = trackXAxisHeight + (tan(angle * (M_PI / 180)) * 6076.0f * (range / 6000.0f) * (double)((trackArea.top - trackArea.bottom) / 8));
+
+		pDC->MoveTo(trackXAxisLeft, trackXAxisHeight);
+		pDC->LineTo(trackArea.right, trackOffset);
+	}
+
 	// Both axis ticks and text
 	CPen axesPen(0, 2, AXES_COLOUR);
 	pDC->SelectObject(&axesPen);
 
 	CFont font;
-	font.CreatePointFont(120, L"Courier New", pDC);
+	font.CreatePointFont(120, L"Courier New Bold", pDC);
 	pDC->SetTextColor(AXES_COLOUR);
 	pDC->SetTextAlign(TA_CENTER);
 	auto* defFont = pDC->SelectObject(&font);
-
-	int trackXAxisHeight = trackArea.CenterPoint().y;
-	int trackXAxisLeft = trackArea.left + 20;
 
 	for (int i = 0; i <= range * 2; i++) {
 		int xPos = xAxisLeft + (glideslopeArea.right - xAxisLeft) * i / (range * 2);
@@ -185,7 +248,7 @@ void CFPNRadarScreen::drawGlidepathAndHorizontalTicks(CDC* pDC, CRect glideslope
 
 void CFPNRadarScreen::drawInfoText(CDC* pDC, int x, int y) {
 	CFont font;
-	font.CreatePointFont(130, L"Courier New", pDC);
+	font.CreatePointFont(130, L"Courier New Bold", pDC);
 	pDC->SetTextColor(RGB(200, 255, 211));
 	pDC->SetTextAlign(TA_LEFT);
 	auto* defFont = pDC->SelectObject(&font);

@@ -27,6 +27,9 @@
     <ClCompile Include="CFPNRadarScreen.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="CFPNRadarTarget.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="EGKKHoldingPoints.def">
@@ -59,6 +62,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CFPNRadarScreen.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CFPNRadarTarget.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

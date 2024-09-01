@@ -4,9 +4,6 @@
 #include "CFPNRadarScreen.h"
 
 
-#define FORCAP(G) for (const char* cap : G) {if (strcmp(dest, cap) == 0) {return true;}} break;
-
-
 CFPNPlugin::CFPNPlugin(void) : CPlugIn(EuroScopePlugIn::COMPATIBILITY_CODE, "FPN-68 PAR", "1.0.0", "Alice Ford","GPL v3") {
 	sendMessage("FPN-68 PAR Plugin Loaded");
 

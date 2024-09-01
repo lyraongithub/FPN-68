@@ -1,7 +1,9 @@
 #pragma once
 #include "EuroScopePlugIn.h"
+#include "CFPNRadarTarget.h"
 #include <string>
 #include "pch.h"
+#include <vector>
 
 class CFPNPlugin : public EuroScopePlugIn::CPlugIn {
 
@@ -17,5 +19,10 @@ public:
     );
 
     virtual void sendMessage(std::string message);
+    inline std::vector<CFPNRadarTarget>* getPreviousTargets() {
+        return &previousTargets;
+    }
+
+    std::vector<CFPNRadarTarget> previousTargets = std::vector<CFPNRadarTarget>();
 };
 
