@@ -1,3 +1,7 @@
 #pragma once
 
 #define FPN_NAME "FPN-68 PAR"
+
+#define AXES_COLOUR RGB(236, 181, 117)
+#define GLIDESLOPE_COLOUR RGB(137, 251, 247)
+#define BACKGROUND_COLOUR RGB(41, 44, 66)
