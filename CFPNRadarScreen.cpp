@@ -3,6 +3,8 @@
 #include "CFPNRadarTarget.h"
 #define _USE_MATH_DEFINES
 #include <math.h>
+#include <sstream>
+#include <iomanip>
 
 CFPNRadarScreen::CFPNRadarScreen() {
 
@@ -39,7 +41,7 @@ void CFPNRadarScreen::OnRefresh(HDC hDC, int Phase) {
 	glideslopeArea.bottom -= 30;
 	trackArea.top += 30;
 
-	int range = 15;
+	int range = ((CFPNPlugin*)GetPlugIn())->range;
 
 	drawVerticalScale(&dc, glideslopeArea, trackArea, range);
 	drawGlidepathAndHorizontalTicks(&dc, glideslopeArea, trackArea, range, 3.0f);
@@ -48,11 +50,11 @@ void CFPNRadarScreen::OnRefresh(HDC hDC, int Phase) {
 
 	drawInfoText(&dc, glideslopeArea.left + 80, glideslopeArea.bottom - 10);
 
-	EuroScopePlugIn::CPosition runwayThreshold;
-	runwayThreshold.LoadFromStrings("W000.10.19.000", "N051.09.02.420");
+	EuroScopePlugIn::CPosition runwayThreshold = ((CFPNPlugin*)GetPlugIn())->runwayThreshold;
+	//runwayThreshold.LoadFromStrings("W000.10.19.000", "N051.09.02.420");
 
-	EuroScopePlugIn::CPosition otherThreshold;
-	otherThreshold.LoadFromStrings("W000.12.24.520", "N051.08.45.120");
+	EuroScopePlugIn::CPosition otherThreshold = ((CFPNPlugin*)GetPlugIn())->otherThreshold;
+	//otherThreshold.LoadFromStrings("W000.12.24.520", "N051.08.45.120");
 
 	std::vector<std::string> foundCallsigns = std::vector<std::string>();
 
@@ -73,7 +75,7 @@ void CFPNRadarScreen::OnRefresh(HDC hDC, int Phase) {
 		std::vector<CFPNRadarTarget> *prevTargets = ((CFPNPlugin*)GetPlugIn())->getPreviousTargets();
 		for (int i = 0; i < prevTargets->size(); i++) {
 			if ((prevTargets->at(i)).callsign == callsign) {
-				(prevTargets->at(i)).updatePosition(pos, altitude);
+				(prevTargets->at(i)).updatePosition(pos, altitude, range, runwayThreshold, otherThreshold);
 				(prevTargets->at(i)).draw(&dc);
 
 				found = true;
@@ -184,7 +186,7 @@ void CFPNRadarScreen::drawGlidepathAndHorizontalTicks(CDC* pDC, CRect glideslope
 	int xAxisHeight = glideslopeArea.bottom + (glideslopeArea.top - glideslopeArea.bottom) / 9;
 	int xAxisLeft = glideslopeArea.left + X_AXIS_OFFSET;
 
-	int topOfGS = xAxisHeight + (tan(angle * (M_PI / 180)) * 6076.0f * (range / 3000.0f) * (double)((glideslopeArea.top - glideslopeArea.bottom) * 2 / 9));
+	int topOfGS = xAxisHeight + (tan(angle * (M_PI / 180)) * 6076.0f * ((float)range / (range * 200)) * (double)((glideslopeArea.top - glideslopeArea.bottom) * 2 / 9));
 
 	pDC->MoveTo(xAxisLeft, xAxisHeight);
 	pDC->LineTo(glideslopeArea.right, topOfGS);
@@ -203,7 +205,7 @@ void CFPNRadarScreen::drawGlidepathAndHorizontalTicks(CDC* pDC, CRect glideslope
 		else if (i == 2) angle = -1.25f;
 		else if (i == 3) angle = -3.0f;
 
-		int trackOffset = trackXAxisHeight + (tan(angle * (M_PI / 180)) * 6076.0f * (range / 6000.0f) * (double)((trackArea.top - trackArea.bottom) / 8));
+		int trackOffset = trackXAxisHeight + (tan(angle * (M_PI / 180)) * 6076.0f * ((float)range / (range * 400)) * (double)((trackArea.top - trackArea.bottom) / 8));
 
 		pDC->MoveTo(trackXAxisLeft, trackXAxisHeight);
 		pDC->LineTo(trackArea.right, trackOffset);
@@ -237,7 +239,7 @@ void CFPNRadarScreen::drawGlidepathAndHorizontalTicks(CDC* pDC, CRect glideslope
 	for (int i = 0; i <= range * 2; i++) {
 		int xPos = xAxisLeft + (glideslopeArea.right - xAxisLeft) * i / (range * 2);
 		int displacement = i % 2 == 0 ? 8 : 4;
-		int yPos = xAxisHeight + (tan(angle * (M_PI / 180)) * 6076.0f * (((float)i/2.0f) / 3000.0f) * (double)((glideslopeArea.top - glideslopeArea.bottom) * 2 / 9));
+		int yPos = xAxisHeight + (tan(angle * (M_PI / 180)) * 6076.0f * (((float)i/2.0f) / (range * 200)) * (double)((glideslopeArea.top - glideslopeArea.bottom) * 2 / 9));
 		pDC->MoveTo(xPos, yPos - displacement);  // GS
 		pDC->LineTo(xPos, yPos + displacement);
 	}
@@ -253,7 +255,13 @@ void CFPNRadarScreen::drawInfoText(CDC* pDC, int x, int y) {
 	pDC->SetTextAlign(TA_LEFT);
 	auto* defFont = pDC->SelectObject(&font);
 
-	std::string text = "GS: 3.0  RWY: 204.7  DH: 200FT     TIME: ";
+	std::string text = "GS: 3.0  RWY: ";
+
+	std::stringstream stream;
+	stream << std::fixed << std::setprecision(1) << ((CFPNPlugin*)GetPlugIn())->runwayThreshold.DirectionTo(((CFPNPlugin*)GetPlugIn())->otherThreshold);
+
+	text += stream.str();
+	text += "  DH: 200FT     TIME : ";
 
 	SYSTEMTIME st;
 	GetSystemTime(&st);

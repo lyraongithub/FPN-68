@@ -27,7 +27,11 @@ CFPNRadarTarget::~CFPNRadarTarget() {
 
 }
 
-void CFPNRadarTarget::updatePosition(EuroScopePlugIn::CPosition pos, int altitude) {
+void CFPNRadarTarget::updatePosition(EuroScopePlugIn::CPosition pos, int altitude, int radarRange, EuroScopePlugIn::CPosition runwayThreshold, EuroScopePlugIn::CPosition otherThreshold) {
+	this->radarRange = radarRange;
+	this->runwayThreshold = runwayThreshold;
+	this->runwayHeading = runwayThreshold.DirectionTo(otherThreshold);
+	
 	if (this->pos.m_Latitude != pos.m_Latitude || this->pos.m_Longitude != pos.m_Longitude || this->altitude != altitude) {
 		previousPos = this->pos;
 		previousAltitude = this->altitude;
@@ -93,7 +97,7 @@ void CFPNRadarTarget::draw(CDC *pDC) {
 		int xAxisHeight = glideslopeArea.bottom + (glideslopeArea.top - glideslopeArea.bottom) / 9;
 		int xAxisLeft = glideslopeArea.left + X_AXIS_OFFSET;
 		int xPos = xAxisLeft + (glideslopeArea.right - xAxisLeft) * range / (radarRange);
-		int yPos = xAxisHeight + (thisAlt / 3000.0f) * (double)((glideslopeArea.top - glideslopeArea.bottom) * 2 / 9);
+		int yPos = xAxisHeight + ((float)thisAlt / (radarRange * 200)) * (double)((glideslopeArea.top - glideslopeArea.bottom) * 2 / 9);
 
 		CPen primaryPen(0, 1, PRIMARY_COLOUR);
 		pDC->SelectObject(&primaryPen);

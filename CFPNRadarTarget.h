@@ -14,7 +14,7 @@ public:
 	CFPNRadarTarget(std::string callsign, EuroScopePlugIn::CPosition pos, int altitude, EuroScopePlugIn::CPosition runwayThreshold, float runwayHeading, int radarRange, float glideslopeAngle, CRect glideslopeArea, CRect trackArea);  // Threshold alt matters!!!
 	~CFPNRadarTarget();
 
-	void updatePosition(EuroScopePlugIn::CPosition pos, int altitude);
+	void updatePosition(EuroScopePlugIn::CPosition pos, int altitude, int radarRange, EuroScopePlugIn::CPosition runwayThreshold, EuroScopePlugIn::CPosition otherThreshold);
 	void draw(CDC *pDC);
 
 	std::string callsign;

@@ -18,11 +18,20 @@ public:
         bool CanBeCreated
     );
 
+    virtual bool OnCompileCommand(const char* sCommandLine);
+
     virtual void sendMessage(std::string message);
     inline std::vector<CFPNRadarTarget>* getPreviousTargets() {
         return &previousTargets;
     }
 
     std::vector<CFPNRadarTarget> previousTargets = std::vector<CFPNRadarTarget>();
+
+    int range = 15;
+    EuroScopePlugIn::CPosition runwayThreshold;
+    EuroScopePlugIn::CPosition otherThreshold;
+
+private:
+    void loadNewAerodrome(const char* icao, const char* runway);
 };
 
