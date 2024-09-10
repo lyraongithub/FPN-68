@@ -4,6 +4,7 @@
 #include "CFPNRadarScreen.h"
 
 #include <sstream>
+#include <cstring>
 
 
 CFPNPlugin::CFPNPlugin(void) : CPlugIn(EuroScopePlugIn::COMPATIBILITY_CODE, "FPN-68 PAR", "1.0.0", "Alice Ford","GPL v3") {
@@ -42,31 +43,54 @@ void CFPNPlugin::sendMessage(std::string message) {
 }
 
 bool CFPNPlugin::OnCompileCommand(const char* sCommandLine) {
-	if (strcmp(sCommandLine, ".fpn 5") == 0) {
-		range = 5;
-		return true;
-	} else if (strcmp(sCommandLine, ".fpn 10") == 0) {
-		range = 10;
-		return true;
-	} else if (strcmp(sCommandLine, ".fpn 15") == 0) {
-		range = 15;
-		return true;
-	} else if (strncmp(sCommandLine, ".fpn", 4) == 0) {
-		std::stringstream f(sCommandLine);
-		std::string s;
-		std::string icao;
-		std::string runway;
-		int n = 0;
-		while (std::getline(f, s, ' ')) {
-			if (n == 1) icao = s;
-			else if (n == 2) runway = s;
-			n++;
-		}
-		sendMessage(icao.c_str());
-		sendMessage(runway.c_str());
-		loadNewAerodrome(icao.c_str(), runway.c_str());
-		return true;
+	if (sCommandLine == nullptr || strlen(sCommandLine) < 4) {
+		return false;
 	}
+
+	if (strncmp(sCommandLine, ".fpn", 4) == 0) {
+		std::string command(sCommandLine);
+
+		// Ensure the command length is greater than 4 before extracting the payload
+		if (command.length() > 4) {
+			std::string payload = command.substr(5);
+
+			if (payload.find(' ') != std::string::npos) {
+				if (payload.length() >= 7) {
+					std::string airport = payload.substr(0, 4);
+					std::string runway = payload.substr(5);
+					sendMessage("Changing airport");
+					sendMessage(airport.c_str());
+					sendMessage(runway.c_str());
+					loadNewAerodrome(airport.c_str(), runway.c_str());
+					return true;
+				}
+			}
+			else {
+				if (payload.empty()) {
+					sendMessage("Command was empty");
+					return false;
+				}
+
+				bool isNum = true;
+				for (char c : payload) {
+					if (!isdigit(c)) {
+						isNum = false;
+						sendMessage("Enter a numerical range");
+						return false;
+					}
+				}
+				if (isNum) {
+					range = std::stoi(payload);
+					return true;
+				}
+			}
+		}
+		else {
+			sendMessage("Command was empty");
+			return false;
+		}
+	}
+
 	return false;
 }
 

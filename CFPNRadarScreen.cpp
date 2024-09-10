@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "CFPNRadarScreen.h"
 #include "CFPNRadarTarget.h"
+#include "SettingsBox.h"
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include <sstream>
@@ -41,6 +42,7 @@ void CFPNRadarScreen::OnRefresh(HDC hDC, int Phase) {
 	glideslopeArea.bottom -= 30;
 	trackArea.top += 30;
 
+
 	int range = ((CFPNPlugin*)GetPlugIn())->range;
 
 	drawVerticalScale(&dc, glideslopeArea, trackArea, range);
@@ -49,6 +51,9 @@ void CFPNRadarScreen::OnRefresh(HDC hDC, int Phase) {
 	drawTrackAxes(&dc, trackArea);
 
 	drawInfoText(&dc, glideslopeArea.left + 80, glideslopeArea.bottom - 10);
+
+	radarArea = GetRadarArea();
+	drawSettingsBox(&dc, radarArea , trackArea);
 
 	EuroScopePlugIn::CPosition runwayThreshold = ((CFPNPlugin*)GetPlugIn())->runwayThreshold;
 	//runwayThreshold.LoadFromStrings("W000.10.19.000", "N051.09.02.420");
@@ -274,4 +279,40 @@ void CFPNRadarScreen::drawInfoText(CDC* pDC, int x, int y) {
 
 	pDC->SelectObject(defFont);
 	font.DeleteObject();
+}
+
+void CFPNRadarScreen::drawSettingsBox(CDC* pDC, CRect radarArea, CRect axesArea) {
+	// Calculate the area for the main settings box
+	CRect settingsBoxArea;
+	settingsBoxArea.left = axesArea.right + 20;
+	settingsBoxArea.top = radarArea.top + 10;
+	settingsBoxArea.right = radarArea.right;
+	settingsBoxArea.bottom = radarArea.bottom;
+
+	CBrush whiteBrush(RGB(255, 255, 255));
+	CBrush* pOldBrush = pDC->SelectObject(&whiteBrush);
+	pDC->FillSolidRect(settingsBoxArea, RGB(255, 255, 255));
+	pDC->SelectObject(pOldBrush);
+
+	CRect blueBoxArea = settingsBoxArea;
+	blueBoxArea.DeflateRect(2,2,2,2);
+
+	CBrush blueBrush(RGB(0, 0, 255));
+	pOldBrush = pDC->SelectObject(&blueBrush);
+	pDC->FillSolidRect(blueBoxArea, RGB(30, 56, 247));
+	pDC->SelectObject(pOldBrush);
+
+	// Draw windows
+
+	CPoint freeSpace(settingsBoxArea.left, settingsBoxArea.bottom);
+	int width = settingsBoxArea.right - settingsBoxArea.left;
+
+	// Main controls
+
+	SettingsBox mainControls(freeSpace, 3,width, 4);
+	freeSpace = mainControls.Draw(pDC);
+
+
+
+
 }
