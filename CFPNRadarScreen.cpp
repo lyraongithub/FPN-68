@@ -312,6 +312,9 @@ void CFPNRadarScreen::drawSettingsBox(CDC* pDC, CRect radarArea, CRect axesArea)
 	SettingsBox mainControls(freeSpace, 3,width, 4);
 	freeSpace = mainControls.Draw(pDC);
 
+	SettingsBox rangeScale(freeSpace, 4, width, 2, true);
+	freeSpace = rangeScale.Draw(pDC);
+
 
 
 

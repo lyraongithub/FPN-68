@@ -70,5 +70,5 @@ CPoint SettingsBox::Draw(CDC* pDC) {
 
 
     // Return the new bottom-left point of the main rectangle
-    return CPoint(boxRect.left, boxRect.bottom);
+    return CPoint(m_start.x, boxRect.top + padding);
 }
