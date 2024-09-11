@@ -4,6 +4,7 @@
 #include "SettingsBox.h"
 #define _USE_MATH_DEFINES
 #include <math.h>
+#include <vector>
 #include <sstream>
 #include <iomanip>
 
@@ -308,12 +309,58 @@ void CFPNRadarScreen::drawSettingsBox(CDC* pDC, CRect radarArea, CRect axesArea)
 	int width = settingsBoxArea.right - settingsBoxArea.left;
 
 	// Main controls
-
-	SettingsBox mainControls(freeSpace, 3,width, 4);
+	std::vector<std::vector<std::string>> mainControlsText = {
+		{"Reset Default", "Small A/C", "Large A/C"},
+		{"Runway Select", "", "Display Control"},
+		{"Radar Control", "PPI Mode","WHI Tst Cycle"},
+		{"Clear Alerts", "Status","ACID Entry"}
+	};
+	SettingsBox mainControls(freeSpace,"Main Controls       RPS",mainControlsText,width);
 	freeSpace = mainControls.Draw(pDC);
 
-	SettingsBox rangeScale(freeSpace, 4, width, 2, true);
+	// Range Controls
+	std::vector<std::vector<std::string>> rangeControlsText = {
+		{"?", "->", "1","3"},
+		{"5", "10", "15","20"},
+	};
+	SettingsBox rangeScale(freeSpace, "Range Scale (nmi)",rangeControlsText,width, true);
 	freeSpace = rangeScale.Draw(pDC);
+
+	// GlideSlope / DescHight
+	std::vector<std::vector<std::string>> glideControlsText = {
+		{"1.0", "2.5", "3.0","GS"},
+		{"210", "200", "210","DH"},
+	};
+	SettingsBox glide(freeSpace, "GLide Slope / Decsn Hgt", glideControlsText, width, true);
+	freeSpace = glide.Draw(pDC);
+
+	// Display Controls
+	std::vector<std::vector<std::string>> displayControlsText = {
+		{"Wx", "Obs", "Map","WHI"},
+		{"Hist", "Radar Cover", "Syn Video","Bird Areas"},
+		{"Sel DBFid", "Lead Dir", "Color Legnd",""},
+		{"Az Scale", "El Scale", "Az offset","Text Size"},
+		{"Clear Hist", "Set # Hist", "","Shut Down"}
+	};
+	SettingsBox display(freeSpace, "Display Controls", displayControlsText, width, true,true);
+	freeSpace = display.Draw(pDC);
+
+	// Radar Controls
+	std::vector<std::vector<std::string>> radarControlsText = {
+		{"Maint Mode", "Ant. Drive", "Rad- iate",""},
+		{"", "", "", ""},
+		{"Rain Mode", "AzAnt Elev", "ElAnt Azim","STC"},
+		};
+	SettingsBox radar(freeSpace, "Radar Controls", radarControlsText, width, true, true);
+	freeSpace = radar.Draw(pDC);
+
+	// Runway Controls
+	std::vector<std::vector<std::string>> runwayControlsText = {
+		{"07", "25", "",""},
+		{"", "", "", ""},
+	};
+	SettingsBox runway(freeSpace, "Select Runway", runwayControlsText, width, true, true);
+	freeSpace = runway.Draw(pDC);
 
 
 

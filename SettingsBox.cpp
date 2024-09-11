@@ -1,12 +1,27 @@
+#pragma once
 #include "pch.h"
 #include "SettingsBox.h"
+#include <vector>
+#include <string>
 
-SettingsBox::SettingsBox(CPoint start, int width, int maxWidth, int height, bool shortBox)
-    : m_start(start), m_width(width), m_maxWidth(maxWidth), m_height(height), m_shortBox(shortBox) {}
+SettingsBox::SettingsBox(CPoint start,const std::string& title, const std::vector<std::vector<std::string>>& text, int maxWidth, bool shortBox, bool closeBox)
+    : m_start(start),m_title(title), m_text(text), m_maxWidth(maxWidth), m_shortBox(shortBox), m_closeBox(closeBox) {}
 
 CPoint SettingsBox::Draw(CDC* pDC) {
     int boxHeight = 50;
     int padding = 5;
+    m_height = m_text.size();
+    if (m_height > 0) {
+        m_width = m_text[0].size();
+    }
+    else {
+        m_width = 0;
+    }
+
+    if (m_width > m_maxWidth) {
+        m_width = m_maxWidth;
+    }
+
     m_start.y -= (m_height * boxHeight + boxHeight / 2);
 
     // Define the main rectangle
@@ -41,6 +56,9 @@ CPoint SettingsBox::Draw(CDC* pDC) {
 
     // Draw the light blue rectangle
     pDC->Rectangle(topRect);
+    CString text(m_title.c_str());
+    pDC->DrawText(text, topRect, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+
 
     auto boxWidth = (boxRect.Width() - padding * 3) / m_width;
     boxHeight = (boxRect.Height() - topRect.Height() - padding * 4) / m_height;
@@ -52,6 +70,10 @@ CPoint SettingsBox::Draw(CDC* pDC) {
     pDC->SelectObject(&blackBrush);
     for (int row = 0; row < m_height; ++row) {
         for (int col = 0; col < m_width; ++col) {
+            const std::string& text = m_text[row][col];
+            if (text.empty()){
+                continue;
+            }
             // Calculate the position of the current box relative to boxRect
             int left = topRect.left + (col * boxWidth);
             int top = topRect.bottom + padding + (row * boxHeight);
@@ -61,6 +83,8 @@ CPoint SettingsBox::Draw(CDC* pDC) {
             CRect subBox(left, top, right, bottom);
             subBox.DeflateRect(2, 2);
             pDC->Rectangle(subBox);
+            CString cstrText(text.c_str());
+            pDC->DrawText(cstrText, subBox, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
         }
     }
 
