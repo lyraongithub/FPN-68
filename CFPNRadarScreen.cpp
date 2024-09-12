@@ -7,6 +7,7 @@
 #include <vector>
 #include <sstream>
 #include <iomanip>
+#include <cmath>
 
 CFPNRadarScreen::CFPNRadarScreen() {
 
@@ -35,7 +36,7 @@ void CFPNRadarScreen::OnRefresh(HDC hDC, int Phase) {
 	//CRect chatArea = GetChatArea();
 	radarArea.DeflateRect(70, 50);  // margins
 
-	radarArea.right -= radarArea.right / 4;
+	radarArea.right -= radarArea.right / 6;
 	
 	// Split screen in 2 across the middle
 	CRect glideslopeArea = CRect(radarArea.left, radarArea.top, radarArea.right, radarArea.CenterPoint().y);
@@ -62,14 +63,22 @@ void CFPNRadarScreen::OnRefresh(HDC hDC, int Phase) {
 	EuroScopePlugIn::CPosition otherThreshold = ((CFPNPlugin*)GetPlugIn())->otherThreshold;
 	//otherThreshold.LoadFromStrings("W000.12.24.520", "N051.08.45.120");
 
+	float runwayHeading = runwayThreshold.DirectionTo(otherThreshold);
+
 	std::vector<std::string> foundCallsigns = std::vector<std::string>();
 
 	for (EuroScopePlugIn::CRadarTarget target = GetPlugIn()->RadarTargetSelectFirst(); target.IsValid(); target = GetPlugIn()->RadarTargetSelectNext(target)) {
 		EuroScopePlugIn::CPosition pos = target.GetPosition().GetPosition();
-		if (pos.DistanceTo(runwayThreshold) > range * 1.5) continue;
+		float hdgToRunway = pos.DirectionTo(runwayThreshold);
+		float angleDifference = fmod((hdgToRunway - runwayHeading + 360), 360);
+		if (angleDifference > 180) {
+			angleDifference = 360 - angleDifference;
+		}
+		float distAlongCenterline = cos(angleDifference) * pos.DistanceTo(runwayThreshold);
+		float distPurp = sin(angleDifference) * pos.DistanceTo(runwayThreshold);
+		if (distAlongCenterline < 0 || distAlongCenterline > range || abs(distPurp) > range) continue;
 
 		int altitude = target.GetPosition().GetPressureAltitude();
-		float hdgToRunway = pos.DirectionTo(runwayThreshold);
 		float trackDeviationAngle = runwayThreshold.DirectionTo(otherThreshold) - hdgToRunway;
 
 		if (abs(trackDeviationAngle) > 8) continue;

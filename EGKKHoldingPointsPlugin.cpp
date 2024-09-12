@@ -7,7 +7,7 @@
 #include <cstring>
 
 
-CFPNPlugin::CFPNPlugin(void) : CPlugIn(EuroScopePlugIn::COMPATIBILITY_CODE, "FPN-68 PAR", "1.0.0", "Alice Ford","GPL v3") {
+CFPNPlugin::CFPNPlugin(void) : CPlugIn(EuroScopePlugIn::COMPATIBILITY_CODE, "FPN-68 PAR", "1.0.0", "Alice Ford, Ben Walker","GPL v3") {
 	loadNewAerodrome("EGKK", "26L");
 	
 	sendMessage("FPN-68 PAR Plugin Loaded");
