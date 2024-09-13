@@ -11,15 +11,16 @@
 class CFPNRadarTarget
 {
 public:
-	CFPNRadarTarget(std::string callsign, EuroScopePlugIn::CPosition pos, int altitude, EuroScopePlugIn::CPosition runwayThreshold, float runwayHeading, int radarRange, float glideslopeAngle, CRect glideslopeArea, CRect trackArea);  // Threshold alt matters!!!
+	CFPNRadarTarget(std::string callsign, EuroScopePlugIn::CPosition pos,int groundsSpeed, int altitude, EuroScopePlugIn::CPosition runwayThreshold, float runwayHeading, int radarRange, float glideslopeAngle, CRect glideslopeArea, CRect trackArea);  // Threshold alt matters!!!
 	~CFPNRadarTarget();
 
-	void updatePosition(EuroScopePlugIn::CPosition pos, int altitude, int radarRange, EuroScopePlugIn::CPosition runwayThreshold, EuroScopePlugIn::CPosition otherThreshold);
+	void updatePosition(EuroScopePlugIn::CPosition pos, int groundSpeed, int altitude, int radarRange, EuroScopePlugIn::CPosition runwayThreshold, EuroScopePlugIn::CPosition otherThreshold);
 	void draw(CDC *pDC);
 
 	std::string callsign;
 private:
 	EuroScopePlugIn::CPosition pos;
+	int groundSpeed;
 	int altitude;
 	SYSTEMTIME posAltTime;
 	EuroScopePlugIn::CPosition runwayThreshold;
@@ -30,6 +31,7 @@ private:
 	CRect trackArea;
 
 	EuroScopePlugIn::CPosition previousPos;
+	int previousGroundSpeed;
 	int previousAltitude = -1;
 	SYSTEMTIME previousPosAltTime;
 

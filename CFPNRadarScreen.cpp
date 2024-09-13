@@ -69,13 +69,15 @@ void CFPNRadarScreen::OnRefresh(HDC hDC, int Phase) {
 
 	for (EuroScopePlugIn::CRadarTarget target = GetPlugIn()->RadarTargetSelectFirst(); target.IsValid(); target = GetPlugIn()->RadarTargetSelectNext(target)) {
 		EuroScopePlugIn::CPosition pos = target.GetPosition().GetPosition();
+		int groundSpeed = target.GetGS();
 		float hdgToRunway = pos.DirectionTo(runwayThreshold);
 		float angleDifference = fmod((hdgToRunway - runwayHeading + 360), 360);
 		if (angleDifference > 180) {
 			angleDifference = 360 - angleDifference;
 		}
-		float distAlongCenterline = cos(angleDifference) * pos.DistanceTo(runwayThreshold);
-		float distPurp = sin(angleDifference) * pos.DistanceTo(runwayThreshold);
+		float angleDifferenceRadians = angleDifference * M_PI / 180.0;
+		float distAlongCenterline = cos(angleDifferenceRadians) * pos.DistanceTo(runwayThreshold);
+		float distPurp = sin(angleDifferenceRadians) * pos.DistanceTo(runwayThreshold);
 		if (distAlongCenterline < 0 || distAlongCenterline > range || abs(distPurp) > range) continue;
 
 		int altitude = target.GetPosition().GetPressureAltitude();
@@ -90,7 +92,7 @@ void CFPNRadarScreen::OnRefresh(HDC hDC, int Phase) {
 		std::vector<CFPNRadarTarget> *prevTargets = ((CFPNPlugin*)GetPlugIn())->getPreviousTargets();
 		for (int i = 0; i < prevTargets->size(); i++) {
 			if ((prevTargets->at(i)).callsign == callsign) {
-				(prevTargets->at(i)).updatePosition(pos, altitude, range, runwayThreshold, otherThreshold);
+				(prevTargets->at(i)).updatePosition(pos,groundSpeed, altitude, range, runwayThreshold, otherThreshold);
 				(prevTargets->at(i)).draw(&dc);
 
 				found = true;
@@ -98,7 +100,7 @@ void CFPNRadarScreen::OnRefresh(HDC hDC, int Phase) {
 			}
 		}
 		if (!found) {
-			CFPNRadarTarget targetPlot = CFPNRadarTarget(callsign, pos, altitude, runwayThreshold, runwayThreshold.DirectionTo(otherThreshold), range, 3.0f, glideslopeArea, trackArea);
+			CFPNRadarTarget targetPlot = CFPNRadarTarget(callsign, pos,groundSpeed, altitude, runwayThreshold, runwayThreshold.DirectionTo(otherThreshold), range, 3.0f, glideslopeArea, trackArea);
 			targetPlot.draw(&dc);
 			prevTargets->push_back(targetPlot);
 		}
@@ -329,7 +331,7 @@ void CFPNRadarScreen::drawSettingsBox(CDC* pDC, CRect radarArea, CRect axesArea)
 
 	// Range Controls
 	std::vector<std::vector<std::string>> rangeControlsText = {
-		{"?", "->", "1","3"},
+		{"\u2190", "\u2192", "1","3"},
 		{"5", "10", "15","20"},
 	};
 	SettingsBox rangeScale(freeSpace, "Range Scale (nmi)",rangeControlsText,width, true);

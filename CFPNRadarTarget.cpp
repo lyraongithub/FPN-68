@@ -5,11 +5,14 @@
 #include <fstream>
 #include <cmath>
 #include <iostream>
+#include <sstream>
+#include <iomanip>
 
 
-CFPNRadarTarget::CFPNRadarTarget(std::string callsign, EuroScopePlugIn::CPosition pos, int altitude, EuroScopePlugIn::CPosition runwayThreshold, float runwayHeading, int radarRange, float glideslopeAngle, CRect glideslopeArea, CRect trackArea) {
+CFPNRadarTarget::CFPNRadarTarget(std::string callsign, EuroScopePlugIn::CPosition pos,int groundSpeed, int altitude, EuroScopePlugIn::CPosition runwayThreshold, float runwayHeading, int radarRange, float glideslopeAngle, CRect glideslopeArea, CRect trackArea) {
 	this->callsign = callsign;
 	this->pos = pos;
+	this->groundSpeed = groundSpeed;
 	this->altitude = altitude;
 	this->runwayThreshold = runwayThreshold;
 	this->runwayHeading = runwayHeading;
@@ -39,18 +42,20 @@ void logMessage(const std::string& message) {
 	}
 }
 
-void CFPNRadarTarget::updatePosition(EuroScopePlugIn::CPosition pos, int altitude, int radarRange, EuroScopePlugIn::CPosition runwayThreshold, EuroScopePlugIn::CPosition otherThreshold) {
+void CFPNRadarTarget::updatePosition(EuroScopePlugIn::CPosition pos,int groundSpeed, int altitude, int radarRange, EuroScopePlugIn::CPosition runwayThreshold, EuroScopePlugIn::CPosition otherThreshold) {
 	this->radarRange = radarRange;
 	this->runwayThreshold = runwayThreshold;
 	this->runwayHeading = runwayThreshold.DirectionTo(otherThreshold);
 	
 	if (this->pos.m_Latitude != pos.m_Latitude || this->pos.m_Longitude != pos.m_Longitude || this->altitude != altitude) {
 		previousPos = this->pos;
+		previousGroundSpeed = this->groundSpeed;
 		previousAltitude = this->altitude;
 		previousPosAltTime = posAltTime;
 
 		this->pos = pos;
 		this->altitude = altitude;
+		this->groundSpeed = groundSpeed;
 
 		SYSTEMTIME st;
 		GetSystemTime(&st);
@@ -132,8 +137,6 @@ void CFPNRadarTarget::draw(CDC *pDC) {
 		float trackDeviationAngle = runwayHeading - hdgToRunway;
 		float range = distanceToRunway * cos(trackDeviationAngle * (M_PI / 180));
 
-		// Current method (unrealistic but easier): Use altitude scaling to plot as if altitude scale was good.
-		// Better method (TODO): Calculate angle between receiver and plane using range and alt, then use tan formulae to calculate apparent altitude
 		int xAxisHeight = glideslopeArea.bottom + (glideslopeArea.top - glideslopeArea.bottom) / 9;
 		int xAxisLeft = glideslopeArea.left + X_AXIS_OFFSET;
 		int xPos = xAxisLeft + (glideslopeArea.right - xAxisLeft) * range / (radarRange);
@@ -151,7 +154,8 @@ void CFPNRadarTarget::draw(CDC *pDC) {
 		pDC->MoveTo(xPos, yPos);
 		pDC->Ellipse(xPos - 3, yPos - 3, xPos + 3, yPos + 3);
 
-		if (index == 4) {
+		if (index == 4) { // Vertical tag
+			
 			COLORREF originalTextColor = pDC->GetTextColor();
 			pDC->SetTextColor(TRACK_DEVIATION_COLOUR);
 			pDC->TextOutW(xPos - 3, yPos - 18, _T("A"));
@@ -168,9 +172,32 @@ void CFPNRadarTarget::draw(CDC *pDC) {
 			int textHeight = textSize.cy;
 			int totalTextHeight = textHeight * 3;
 			int spacing = 10;
+
 			pDC->TextOutW(xPos - 35, yPos - 30 - totalTextHeight, _T("S"));
-			pDC->TextOutW(xPos - 75, yPos - 30 - totalTextHeight + textHeight + 3, _T("163 6.1 "));
-			pDC->TextOutW(xPos - 75, yPos - 30 - totalTextHeight + textHeight * 2 + 3, _T("+106\u2191  "));
+
+			//GroundSpeed / distance
+			std::wstringstream wss;
+			wss << std::fixed << std::setprecision(1) << distanceToRunway;
+			std::wstring dist = wss.str();
+
+			std::wstring groundSpeedStr = std::to_wstring(groundSpeed) + L" " + dist;
+			CString groundSpeedCStr(groundSpeedStr.c_str());
+
+			pDC->TextOutW(xPos - 75, yPos - 30 - totalTextHeight + textHeight + 3, groundSpeedCStr);
+
+			// Vertical Deviation
+			int altDiff = static_cast<int>(apparentAlt - ((tan(3 * (M_PI) / 180) * (distanceToRunway*6076.0f))));
+
+			if (altDiff > 0) { // High
+				std::wstring altOffset = L"+" + std::to_wstring(altDiff) + L"\u2193";
+				CString altOffsetCStr = altOffset.c_str();
+				pDC->TextOutW(xPos - 75, yPos - 30 - totalTextHeight + textHeight * 2 + 3, altOffsetCStr);
+			}
+			else if (altDiff < 0){ // Low
+				std::wstring altOffset = L"-" + std::to_wstring(altDiff) + L"\u2191";
+				CString altOffsetCStr = altOffset.c_str();
+				pDC->TextOutW(xPos - 75, yPos - 30 - totalTextHeight + textHeight * 2 + 3, altOffsetCStr);
+			}
 
 			pDC->SetTextColor(originalTextColor);
 		}
@@ -183,15 +210,16 @@ void CFPNRadarTarget::draw(CDC *pDC) {
 
 		pDC->MoveTo(xPos, yPos);
 		pDC->Ellipse(xPos - 3, yPos - 3, xPos + 3, yPos + 3);
-		if (index == 4) {
-    		COLORREF originalTextColor = pDC->GetTextColor();
+		if (index == 4) { // Horizontal tag
+
+			COLORREF originalTextColor = pDC->GetTextColor();
 			pDC->SetTextColor(TRACK_DEVIATION_COLOUR);
 			pDC->TextOutW(xPos - 3, yPos - 18, _T("A"));
 
 			CPen thickPen(PS_SOLID, 3, TRACK_DEVIATION_COLOUR);
 			CPen* pOldPen = pDC->SelectObject(&thickPen);
-			pDC->MoveTo(xPos - 10 ,yPos - 10);
-    		pDC->LineTo(xPos - 30, yPos - 30);
+			pDC->MoveTo(xPos - 10, yPos - 10);
+			pDC->LineTo(xPos - 30, yPos - 30);
 
 			pDC->SelectObject(pOldPen);
 
@@ -200,13 +228,36 @@ void CFPNRadarTarget::draw(CDC *pDC) {
 			int textHeight = textSize.cy;
 			int totalTextHeight = textHeight * 3;
 			int spacing = 10;
+
 			pDC->TextOutW(xPos - 35, yPos - 30 - totalTextHeight, _T("S"));
-			pDC->TextOutW(xPos - 75, yPos - 30 - totalTextHeight + textHeight + 3, _T("163 6.1 "));
-			pDC->TextOutW(xPos - 75, yPos - 30 - totalTextHeight + textHeight * 2 + 3, _T("+106\u2192  "));
+			// GroundSpeed Dist line
+			std::wstringstream wss;
+			wss << std::fixed << std::setprecision(1) << distanceToRunway;
+			std::wstring dist = wss.str();
+
+			std::wstring groundSpeedStr = std::to_wstring(groundSpeed) + L" " + dist;
+			CString groundSpeedCStr(groundSpeedStr.c_str());
+
+			pDC->TextOutW(xPos - 75, yPos - 30 - totalTextHeight + textHeight + 3, groundSpeedCStr);
+
+			// Lateral Deviation
+			int lateralOffset = static_cast<int>(tan(trackDeviationAngle * (M_PI / 180.0)) * (distanceToRunway*6076.0f));
+			
+			if (lateralOffset > 0) { // Right of centerline
+				std::wstring trackOffset = L"+" + std::to_wstring(lateralOffset) + L"\u2190";
+				CString trackOffsetCStr = trackOffset.c_str();
+				pDC->TextOutW(xPos - 75, yPos - 30 - totalTextHeight + textHeight * 2 + 3, trackOffsetCStr);
+			}
+			else if (lateralOffset < 0){ // Left
+				std::wstring trackOffset = L"-" + std::to_wstring(lateralOffset) + L"\u2192";
+				CString trackOffsetCStr = trackOffset.c_str();
+				pDC->TextOutW(xPos - 75, yPos - 30 - totalTextHeight + textHeight * 2 + 3, trackOffsetCStr);
+			}
 
 
-			pDC->SetTextColor(originalTextColor); 
+			pDC->SetTextColor(originalTextColor);
 		}
+
 		index++;
 	}
 }
