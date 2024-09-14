@@ -163,7 +163,7 @@ void CFPNRadarTarget::draw(CDC *pDC) {
 			CPen thickPen(PS_SOLID, 3, TRACK_DEVIATION_COLOUR);
 			CPen* pOldPen = pDC->SelectObject(&thickPen);
 			pDC->MoveTo(xPos - 10, yPos - 10);
-			pDC->LineTo(xPos - 30, yPos - 30);
+			pDC->LineTo(xPos - 27, yPos - 27);
 
 			pDC->SelectObject(pOldPen);
 
@@ -189,15 +189,20 @@ void CFPNRadarTarget::draw(CDC *pDC) {
 			int altDiff = static_cast<int>(apparentAlt - ((tan(3 * (M_PI) / 180) * (distanceToRunway*6076.0f))));
 
 			if (altDiff > 0) { // High
-				std::wstring altOffset = L"+" + std::to_wstring(altDiff) + L"\u2193";
+				std::wstringstream ss;
+				ss << L"+" << std::setw(3) << std::setfill(L'0') << altDiff << L"\u2193";
+				std::wstring altOffset = ss.str();
 				CString altOffsetCStr = altOffset.c_str();
 				pDC->TextOutW(xPos - 75, yPos - 30 - totalTextHeight + textHeight * 2 + 3, altOffsetCStr);
 			}
-			else if (altDiff < 0){ // Low
-				std::wstring altOffset = L"-" + std::to_wstring(altDiff) + L"\u2191";
+			else if (altDiff < 0) { // Low
+				std::wstringstream ss;
+				ss << L"-" << std::setw(3) << std::setfill(L'0') << -altDiff << L"\u2191";
+				std::wstring altOffset = ss.str();
 				CString altOffsetCStr = altOffset.c_str();
 				pDC->TextOutW(xPos - 75, yPos - 30 - totalTextHeight + textHeight * 2 + 3, altOffsetCStr);
 			}
+
 
 			pDC->SetTextColor(originalTextColor);
 		}
@@ -219,7 +224,7 @@ void CFPNRadarTarget::draw(CDC *pDC) {
 			CPen thickPen(PS_SOLID, 3, TRACK_DEVIATION_COLOUR);
 			CPen* pOldPen = pDC->SelectObject(&thickPen);
 			pDC->MoveTo(xPos - 10, yPos - 10);
-			pDC->LineTo(xPos - 30, yPos - 30);
+			pDC->LineTo(xPos - 27, yPos - 27);
 
 			pDC->SelectObject(pOldPen);
 
@@ -244,12 +249,16 @@ void CFPNRadarTarget::draw(CDC *pDC) {
 			int lateralOffset = static_cast<int>(tan(trackDeviationAngle * (M_PI / 180.0)) * (distanceToRunway*6076.0f));
 			
 			if (lateralOffset > 0) { // Right of centerline
-				std::wstring trackOffset = L"+" + std::to_wstring(lateralOffset) + L"\u2190";
+				std::wstringstream ss;
+				ss << L"+" << std::setw(3) << std::setfill(L'0') << lateralOffset << L"\u2190";
+				std::wstring trackOffset = ss.str();
 				CString trackOffsetCStr = trackOffset.c_str();
 				pDC->TextOutW(xPos - 75, yPos - 30 - totalTextHeight + textHeight * 2 + 3, trackOffsetCStr);
 			}
-			else if (lateralOffset < 0){ // Left
-				std::wstring trackOffset = L"-" + std::to_wstring(lateralOffset) + L"\u2192";
+			else if (lateralOffset < 0) { // Left
+				std::wstringstream ss;
+				ss << L"-" << std::setw(3) << std::setfill(L'0') << -lateralOffset << L"\u2192";
+				std::wstring trackOffset = ss.str();
 				CString trackOffsetCStr = trackOffset.c_str();
 				pDC->TextOutW(xPos - 75, yPos - 30 - totalTextHeight + textHeight * 2 + 3, trackOffsetCStr);
 			}
