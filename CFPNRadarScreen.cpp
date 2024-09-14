@@ -8,6 +8,7 @@
 #include <sstream>
 #include <iomanip>
 #include <cmath>
+#include <afxwin.h>
 
 CFPNRadarScreen::CFPNRadarScreen() {
 
@@ -296,11 +297,12 @@ void CFPNRadarScreen::drawInfoText(CDC* pDC, int x, int y) {
 void CFPNRadarScreen::drawSettingsBox(CDC* pDC, CRect radarArea, CRect axesArea) {
 	// Calculate the area for the main settings box
 	CRect settingsBoxArea;
-	settingsBoxArea.left = axesArea.right + 20;
-	settingsBoxArea.top = radarArea.top + 10;
+	settingsBoxArea.left = axesArea.right;
+	settingsBoxArea.top = radarArea.top;
 	settingsBoxArea.right = radarArea.right;
 	settingsBoxArea.bottom = radarArea.bottom;
 
+	settingsBoxArea.DeflateRect(5, 5);
 	CBrush whiteBrush(RGB(255, 255, 255));
 	CBrush* pOldBrush = pDC->SelectObject(&whiteBrush);
 	pDC->FillSolidRect(settingsBoxArea, RGB(255, 255, 255));
@@ -316,59 +318,59 @@ void CFPNRadarScreen::drawSettingsBox(CDC* pDC, CRect radarArea, CRect axesArea)
 
 	// Draw windows
 
-	CPoint freeSpace(settingsBoxArea.left, settingsBoxArea.bottom);
+	CPoint freeSpace(settingsBoxArea.left - 3, settingsBoxArea.bottom);
 	int width = settingsBoxArea.right - settingsBoxArea.left;
 
 	// Main controls
 	std::vector<std::vector<std::string>> mainControlsText = {
-		{"Reset Default", "Small A/C", "Large A/C"},
-		{"Runway Select", "", "Display Control"},
-		{"Radar Control", "PPI Mode","WHI Tst Cycle"},
-		{"Clear Alerts", "Status","ACID Entry"}
+		{"Reset\nDefault", ".Small\nA/C", "Large\nA/C"},
+		{"Runway\nSelect", "", "Display\nControl"},
+		{"Radar\nControl", "PPI\nMode","WHI Tst\nCycle"},
+		{"Clear\nAlerts", "Status","ACID\nEntry"}
 	};
-	SettingsBox mainControls(freeSpace,"Main Controls       RPS",mainControlsText,width);
+	SettingsBox mainControls(freeSpace,"Main Controls                        RPS",mainControlsText,width);
 	freeSpace = mainControls.Draw(pDC);
 
 	// Range Controls
 	std::vector<std::vector<std::string>> rangeControlsText = {
 		{"\u2190", "\u2192", "1","3"},
-		{"5", "10", "15","20"},
+		{"5", ".10", "15","20"},
 	};
 	SettingsBox rangeScale(freeSpace, "Range Scale (nmi)",rangeControlsText,width, true);
 	freeSpace = rangeScale.Draw(pDC);
 
 	// GlideSlope / DescHight
 	std::vector<std::vector<std::string>> glideControlsText = {
-		{"1.0", "2.5", "3.0","GS"},
-		{"210", "200", "210","DH"},
+		{".3.0", "2.5", "3.0","GS"},
+		{".210", "200", "210","DH"},
 	};
 	SettingsBox glide(freeSpace, "GLide Slope / Decsn Hgt", glideControlsText, width, true);
 	freeSpace = glide.Draw(pDC);
 
 	// Display Controls
 	std::vector<std::vector<std::string>> displayControlsText = {
-		{"Wx", "Obs", "Map","WHI"},
-		{"Hist", "Radar Cover", "Syn Video","Bird Areas"},
-		{"Sel DBFid", "Lead Dir", "Color Legnd",""},
-		{"Az Scale", "El Scale", "Az offset","Text Size"},
-		{"Clear Hist", "Set # Hist", "","Shut Down"}
+		{".Wx", "Obs", ".Map","WHI"},
+		{".Hist", ".Radar\nCover", "Syn\nVideo",".Bird\nAreas"},
+		{"Sel\nDBFld", "Lead\nDir", "Color\nLegnd",""},
+		{"Az\nScale", "El\nScale", "Az\nOffst","Text\nSize"},
+		{"Clear\nHist", "Set #\nHist", "","Shut\nDown"}
 	};
-	SettingsBox display(freeSpace, "Display Controls", displayControlsText, width, true,true);
+	SettingsBox display(freeSpace, "Display Controls", displayControlsText, width, false,true);
 	freeSpace = display.Draw(pDC);
 
 	// Radar Controls
 	std::vector<std::vector<std::string>> radarControlsText = {
-		{"Maint Mode", "Ant. Drive", "Rad- iate",""},
+		{"Maint\nMode", ".Ant.\nDrive", ".Rad-\niate",""},
 		{"", "", "", ""},
-		{"Rain Mode", "AzAnt Elev", "ElAnt Azim","STC"},
+		{".Rain\nMode", "AzAnt\nElev", "ElAnt\nAzim","STC"},
 		};
-	SettingsBox radar(freeSpace, "Radar Controls", radarControlsText, width, true, true);
+	SettingsBox radar(freeSpace, "Radar Controls", radarControlsText, width, false, true);
 	freeSpace = radar.Draw(pDC);
 
 	// Runway Controls
 	std::vector<std::vector<std::string>> runwayControlsText = {
-		{"07", "25", "",""},
-		{"", "", "", ""},
+		{"07", ".25", " "," "},
+		{" ", " ", " ", " "},
 	};
 	SettingsBox runway(freeSpace, "Select Runway", runwayControlsText, width, true, true);
 	freeSpace = runway.Draw(pDC);

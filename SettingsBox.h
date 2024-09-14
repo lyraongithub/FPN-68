@@ -16,7 +16,6 @@ private:
     
     int m_width;
     int m_maxWidth;
-    int m_height;
     bool m_shortBox;
     bool m_closeBox;
     std::string m_title;
