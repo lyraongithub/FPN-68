@@ -68,6 +68,9 @@ void CFPNRadarTarget::updatePosition(EuroScopePlugIn::CPosition pos,int groundSp
 
 		double deltaT = (posAltTime.wSecond * 1000 + posAltTime.wMilliseconds) - (previousPosAltTime.wSecond * 1000 + previousPosAltTime.wMilliseconds);
 		if (deltaT == 0) return; // Don't divide by 0 please
+		if (deltaT < 0) {
+			deltaT += 60'000; // account for minute change
+		}
 
 
 		EuroScopePlugIn::CPosition deltaPos = EuroScopePlugIn::CPosition();
@@ -84,7 +87,7 @@ void CFPNRadarTarget::updatePosition(EuroScopePlugIn::CPosition pos,int groundSp
 
         double newDeltaT = currentTotalMilliseconds - previousTotalMilliseconds;
 		if (newDeltaT < 0){
-			newDeltaT += 60000; // account for minute change
+			newDeltaT += 60'000; // account for minute change
 		}
 
 		double timeMultiplier = newDeltaT / deltaT;
@@ -105,13 +108,6 @@ void CFPNRadarTarget::updatePosition(EuroScopePlugIn::CPosition pos,int groundSp
 		double distanceNM = sqrt(pow(latDifferenceNM, 2) + pow(lonDifferenceNM, 2));
 
 		std::string logMsg = "Current Time: " + std::to_string(st.wHour) + ":" + std::to_string(st.wMinute) + ":" + std::to_string(st.wSecond) + "." + std::to_string(st.wMilliseconds) + ":";
-
-		if (distanceNM > 0.5) { // Adjust the threshold as needed
-			logMsg += "\n==================Large Jump Detected===========================\n";
-		}
-		logMsg += " / Previous Position: (" + std::to_string(pos.m_Latitude) + ", " + std::to_string(pos.m_Longitude) + ")";
-		logMsg += " / New Position: (" + std::to_string(newPos.m_Latitude) + ", " + std::to_string(newPos.m_Longitude) + ")";
-		logMsg += " / Distance: " + std::to_string(distanceNM);
 		logMsg += " / DeltaT: " + std::to_string(deltaT) + " / NewDeltaT: " + std::to_string(newDeltaT);
 		logMsg += " / CurrentMs: " + std::to_string(currentTotalMilliseconds) + " / PreviousMs: " + std::to_string(previousTotalMilliseconds) + "\n";
 		logMessage(logMsg);
