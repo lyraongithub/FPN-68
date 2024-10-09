@@ -9,7 +9,7 @@
 #include <iomanip>
 
 
-CFPNRadarTarget::CFPNRadarTarget(std::string callsign, EuroScopePlugIn::CPosition pos,int groundSpeed, int altitude, EuroScopePlugIn::CPosition runwayThreshold, float runwayHeading, int radarRange, float glideslopeAngle, CRect glideslopeArea, CRect trackArea) {
+CFPNRadarTarget::CFPNRadarTarget(std::string callsign, EuroScopePlugIn::CPosition pos,int groundSpeed, int altitude, EuroScopePlugIn::CPosition runwayThreshold, float runwayHeading, int radarRange,float airportElevation, float glideslopeAngle, CRect glideslopeArea, CRect trackArea) {
 	this->callsign = callsign;
 	this->pos = pos;
 	this->groundSpeed = groundSpeed;
@@ -17,6 +17,7 @@ CFPNRadarTarget::CFPNRadarTarget(std::string callsign, EuroScopePlugIn::CPositio
 	this->runwayThreshold = runwayThreshold;
 	this->runwayHeading = runwayHeading;
 	this->radarRange = radarRange;
+	this->airportElevation = airportElevation;
 	this->glideslopeAngle = glideslopeAngle;
 	this->glideslopeArea = glideslopeArea;
 	this->trackArea = trackArea;
@@ -133,18 +134,21 @@ void CFPNRadarTarget::draw(CDC *pDC) {
 		float trackDeviationAngle = runwayHeading - hdgToRunway;
 		float range = distanceToRunway * cos(trackDeviationAngle * (M_PI / 180));
 
+		// get X location on screen
 		int xAxisHeight = glideslopeArea.bottom + (glideslopeArea.top - glideslopeArea.bottom) / 9;
 		int xAxisLeft = glideslopeArea.left + X_AXIS_OFFSET;
 		int xPos = xAxisLeft + (glideslopeArea.right - xAxisLeft) * range / (radarRange);
 
+		// get Y location on screen
 		double angle = atan2(thisAlt, range);
 		double apparentAlt = tan(angle) * range;
-		int yPos = xAxisHeight + (apparentAlt / (radarRange * 200)) * (double)((glideslopeArea.top - glideslopeArea.bottom) * 2 / 9);
+		double apparentElevation = apparentAlt - airportElevation;
+		int yPos = xAxisHeight + (apparentElevation / (radarRange * 200)) * (double)((glideslopeArea.top - glideslopeArea.bottom) * 2 / 9);
 
+		// draw radar blip
 		CPen primaryPen(0, 1, PRIMARY_COLOUR);
 		pDC->SelectObject(&primaryPen);
 
-		//CBrush primaryBrush(PRIMARY_COLOUR);
 		pDC->SetDCBrushColor(PRIMARY_COLOUR);
 
 		pDC->MoveTo(xPos, yPos);
@@ -182,7 +186,7 @@ void CFPNRadarTarget::draw(CDC *pDC) {
 			pDC->TextOutW(xPos - 75, yPos - 30 - totalTextHeight + textHeight + 3, groundSpeedCStr);
 
 			// Vertical Deviation
-			int altDiff = static_cast<int>(apparentAlt - ((tan(3 * (M_PI) / 180) * (distanceToRunway*6076.0f))));
+			int altDiff = static_cast<int>(apparentElevation - ((tan(3 * (M_PI) / 180) * (distanceToRunway*6076.0f))));
 
 			if (altDiff > 0) { // High
 				std::wstringstream ss;

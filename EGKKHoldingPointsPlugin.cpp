@@ -7,6 +7,7 @@
 #include <cstring>
 
 
+
 CFPNPlugin::CFPNPlugin(void) : CPlugIn(EuroScopePlugIn::COMPATIBILITY_CODE, "FPN-68 PAR", "1.0.0", "Alice Ford, Ben Walker","GPL v3") {
 	loadNewAerodrome("EGKK", "26L");
 	
@@ -29,7 +30,9 @@ EuroScopePlugIn::CRadarScreen* CFPNPlugin::OnRadarScreenCreated(const char* sDis
 		return nullptr;
 	}
 	else {
-		return new CFPNRadarScreen;
+		CFPNRadarScreen* radarScreen = new CFPNRadarScreen;
+		radarScreen->setElevation(this->getElevation());
+		return radarScreen;
 	}
 }
 
@@ -98,19 +101,32 @@ void CFPNPlugin::loadNewAerodrome(const char* icao, const char* runway) {
 	EuroScopePlugIn::CSectorElement elem = SectorFileElementSelectFirst(EuroScopePlugIn::SECTOR_ELEMENT_RUNWAY);
 
 	bool foundRunway = false;
+	
 
 	do {
 		if (strncmp(elem.GetAirportName(), icao, 4) == 0) {
 			if (strcmp(elem.GetRunwayName(0), runway) == 0) {
 				elem.GetPosition(&runwayThreshold, 0);
 				elem.GetPosition(&otherThreshold, 1);
-				sendMessage(("Loaded: " + std::string(elem.GetAirportName()) + ", runway " + std::string(elem.GetRunwayName(0))).c_str());
+				auto airportElevation = AIRPORT_ELEVATION;
+				std::string airportName(elem.GetAirportName(), 4);
+				if (airportElevation.find(airportName) != airportElevation.end() &&
+					airportElevation[airportName].find(elem.GetRunwayName(0)) != airportElevation[airportName].end()) {
+					elevation = airportElevation[airportName][elem.GetRunwayName(0)];
+				}
+				sendMessage(("Loaded: " + std::string(elem.GetAirportName()) + ", runway " + std::string(elem.GetRunwayName(0)) + ", threshold elevation " + std::to_string(elevation) + " ft").c_str());
 				foundRunway = true;
 				break;
 			} else if (strcmp(elem.GetRunwayName(1), runway) == 0) {
 				elem.GetPosition(&runwayThreshold, 1);
 				elem.GetPosition(&otherThreshold, 0);
-				sendMessage(("Loaded: " + std::string(elem.GetAirportName()) + ", runway " + std::string(elem.GetRunwayName(1))).c_str());
+				auto airportElevation = AIRPORT_ELEVATION;
+				std::string airportName(elem.GetAirportName(), 4);
+				if (airportElevation.find(airportName) != airportElevation.end() &&
+					airportElevation[airportName].find(elem.GetRunwayName(0)) != airportElevation[airportName].end()) {
+					elevation = airportElevation[airportName][elem.GetRunwayName(0)];
+				}
+				sendMessage(("Loaded: " + std::string(elem.GetAirportName()) + ", runway " + std::string(elem.GetRunwayName(1)) + ", threshold elevation " + std::to_string(elevation) + " ft").c_str());
 				foundRunway = true;
 				break;
 			}

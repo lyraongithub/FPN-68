@@ -101,7 +101,7 @@ void CFPNRadarScreen::OnRefresh(HDC hDC, int Phase) {
 			}
 		}
 		if (!found) {
-			CFPNRadarTarget targetPlot = CFPNRadarTarget(callsign, pos,groundSpeed, altitude, runwayThreshold, runwayThreshold.DirectionTo(otherThreshold), range, 3.0f, glideslopeArea, trackArea);
+			CFPNRadarTarget targetPlot = CFPNRadarTarget(callsign, pos,groundSpeed, altitude, runwayThreshold, runwayThreshold.DirectionTo(otherThreshold), range, elevation, 3.0f, glideslopeArea, trackArea);
 			targetPlot.draw(&dc);
 			prevTargets->push_back(targetPlot);
 		}
@@ -297,7 +297,7 @@ void CFPNRadarScreen::drawInfoText(CDC* pDC, int x, int y) {
 void CFPNRadarScreen::drawSettingsBox(CDC* pDC, CRect radarArea, CRect axesArea) {
 	// Calculate the area for the main settings box
 	CRect settingsBoxArea;
-	settingsBoxArea.left = axesArea.right;
+	settingsBoxArea.left = axesArea.right + 10;
 	settingsBoxArea.top = radarArea.top;
 	settingsBoxArea.right = radarArea.right;
 	settingsBoxArea.bottom = radarArea.bottom;

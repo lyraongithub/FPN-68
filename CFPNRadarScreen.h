@@ -19,6 +19,10 @@ public:
         delete this;
     }
 
+    void setElevation(float elevation) {
+        this->elevation = elevation;
+    }
+
 private:
     void drawGSAxes(CDC *pDC, CRect area);
     void drawTrackAxes(CDC* pDC, CRect area);
@@ -27,5 +31,7 @@ private:
     void drawHorizontalScale(CDC* pDC, CRect glideslopeArea, CRect trackArea, int range);
     void drawGlidepathAndHorizontalTicks(CDC *pDC, CRect glideslopeArea, CRect trackArea, int range, float angle);  // tan(theta) * 6076 * range = alt at that range
     void drawSettingsBox(CDC* pDC, CRect radarArea,CRect axesArea);
+
+    float elevation;
 };
 

@@ -33,7 +33,7 @@ CPoint SettingsBox::Draw(CDC* pDC) {
     // Define the main rectangle
     CRect boxRect(m_start.x, m_start.y, m_start.x + m_maxWidth, m_start.y + (m_height * boxHeight) + titleBoxHeight);
     boxRect.DeflateRect(10, 10);
-    //boxRect.OffsetRect(0, 2);
+    boxRect.OffsetRect(0, 2);
 
     // Create and select the white pen
     CPen whitePen(PS_SOLID, padding, RGB(255, 255, 255));
@@ -98,8 +98,8 @@ for (int row = 0; row < m_height; ++row) {
         subBox.DeflateRect(2, 2);
 
         // Set colors based on flipColors
-        COLORREF boxColor = flipColors ? RGB(255, 255, 255) : RGB(0, 0, 0);
-        COLORREF textColor = flipColors ? RGB(0, 0, 0) : RGB(255, 255, 255);
+        COLORREF boxColor = flipColors ? RGB(253, 254, 222) : RGB(87, 86, 104);
+        COLORREF textColor = flipColors ? RGB(87, 86, 104) : RGB(253, 254, 222);
 
         CBrush brush(boxColor);
         CPen pen(PS_SOLID, 1, boxColor);

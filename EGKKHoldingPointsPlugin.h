@@ -25,9 +25,14 @@ public:
         return &previousTargets;
     }
 
+    float getElevation() const {
+        return elevation;
+    }
+
     std::vector<CFPNRadarTarget> previousTargets = std::vector<CFPNRadarTarget>();
 
     int range = 15;
+    float elevation = -1;
     EuroScopePlugIn::CPosition runwayThreshold;
     EuroScopePlugIn::CPosition otherThreshold;
 
