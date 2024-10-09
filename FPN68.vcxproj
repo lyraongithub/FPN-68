@@ -22,7 +22,7 @@
     <VCProjectVersion>17.0</VCProjectVersion>
     <ProjectGuid>{00859A38-FE53-4AA9-8709-9F999EE74DE5}</ProjectGuid>
     <Keyword>MFCDLLProj</Keyword>
-    <RootNamespace>EGKKHoldingPoints</RootNamespace>
+    <RootNamespace>FPN68</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -161,7 +161,7 @@
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <ModuleDefinitionFile>.\EGKKHoldingPoints.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>.\FPN68.def</ModuleDefinitionFile>
       <AdditionalLibraryDirectories>D:\Vatsim uk code stuff\PARFPNRadar\EuroScopePlugInDll.lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>D:\Vatsim uk code stuff\PARFPNRadar\EuroScopePlugInDll.lib</AdditionalDependencies>
     </Link>
@@ -184,15 +184,15 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_WINDOWS;NDEBUG;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>C:\Users\olive\AppData\Roaming\EuroScope\UK\Data\Plugin\dev\EGKKHoldingPoints</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\olive\AppData\Roaming\EuroScope\UK\Data\Plugin\dev\FPN68</AdditionalIncludeDirectories>
       <TreatWChar_tAsBuiltInType>false</TreatWChar_tAsBuiltInType>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <ModuleDefinitionFile>.\EGKKHoldingPoints.def</ModuleDefinitionFile>
-      <AdditionalDependencies>C:\Users\olive\AppData\Roaming\EuroScope\UK\Data\Plugin\dev\EGKKHoldingPoints\EuroScopePlugInDll.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <ModuleDefinitionFile>.\FPN68.def</ModuleDefinitionFile>
+      <AdditionalDependencies>C:\Users\olive\AppData\Roaming\EuroScope\UK\Data\Plugin\dev\FPN68\EuroScopePlugInDll.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Midl>
       <MkTypLibCompatible>false</MkTypLibCompatible>
@@ -207,8 +207,8 @@
   <ItemGroup>
     <ClCompile Include="CFPNRadarScreen.cpp" />
     <ClCompile Include="CFPNRadarTarget.cpp" />
-    <ClCompile Include="EGKKHoldingPoints.cpp" />
-    <ClCompile Include="EGKKHoldingPointsPlugin.cpp" />
+    <ClCompile Include="FPN68.cpp" />
+    <ClCompile Include="FPN68Plugin.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -218,14 +218,14 @@
     <ClCompile Include="SettingsBox.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="EGKKHoldingPoints.def" />
-    <None Include="res\EGKKHoldingPoints.rc2" />
+    <None Include="FPN68.def" />
+    <None Include="res\FPN68.rc2" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CFPNRadarScreen.h" />
     <ClInclude Include="CFPNRadarTarget.h" />
     <ClInclude Include="Constant.h" />
-    <ClInclude Include="EGKKHoldingPointsPlugin.h" />
+    <ClInclude Include="FPN68Plugin.h" />
     <ClInclude Include="EuroScopePlugIn.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="pch.h" />
@@ -234,7 +234,7 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="EGKKHoldingPoints.rc" />
+    <ResourceCompile Include="FPN68.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

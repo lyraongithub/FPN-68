@@ -1,6 +1,6 @@
 #pragma once
 #include "EuroScopePlugIn.h"
-#include "EGKKHoldingPointsPlugin.h"
+#include "FPN68Plugin.h"
 #include "Constant.h"
 #include <afxpriv.h>
 
