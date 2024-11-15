@@ -2,13 +2,31 @@
 #include "FPN68Plugin.h"
 #include "Constant.h"
 #include "CFPNRadarScreen.h"
+#include "Resource.h"
 
 #include <sstream>
 #include <cstring>
+#include <windows.h>
+#include <tchar.h>
 
-
+void LoadCustomFont() {
+    HRSRC hRes = FindResource(NULL, MAKEINTRESOURCE(IDR_VCRFONT), _T("TTF"));
+    if (hRes) {
+        HGLOBAL hMem = LoadResource(NULL, hRes);
+        if (hMem) {
+            DWORD dwSize = SizeofResource(NULL, hRes);
+            void* pFontData = LockResource(hMem);
+            if (pFontData) {
+                DWORD nFonts;
+                HANDLE hFont = AddFontMemResourceEx(pFontData, dwSize, NULL, &nFonts);
+            }
+        }
+    }
+}
 
 CFPNPlugin::CFPNPlugin(void) : CPlugIn(EuroScopePlugIn::COMPATIBILITY_CODE, "FPN-68 PAR", "1.0.0", "Alice Ford, Ben Walker","GPL v3") {
+	LoadCustomFont();
+	
 	loadNewAerodrome("EGKK", "26L");
 	
 	sendMessage("FPN-68 PAR Plugin Loaded");
@@ -139,3 +157,6 @@ void CFPNPlugin::loadNewAerodrome(const char* icao, const char* runway) {
 		sendMessage(("Runway " + std::string(runway) + " at " + std::string(icao) + " not found!").c_str());
 	}
 }
+
+
+

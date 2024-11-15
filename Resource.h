@@ -3,6 +3,7 @@
 // Used by EGKKHoldingPoints.rc
 //
 
+#define IDR_VCRFONT                 101
 // Next default values for new objects
 //
 #ifdef APSTUDIO_INVOKED

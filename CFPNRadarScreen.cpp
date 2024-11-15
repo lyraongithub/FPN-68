@@ -37,7 +37,7 @@ void CFPNRadarScreen::OnRefresh(HDC hDC, int Phase) {
 	//CRect chatArea = GetChatArea();
 	radarArea.DeflateRect(70, 50);  // margins
 
-	radarArea.right -= radarArea.right / 6;
+	radarArea.right -= radarArea.right / 8;
 	
 	// Split screen in 2 across the middle
 	CRect glideslopeArea = CRect(radarArea.left, radarArea.top, radarArea.right, radarArea.CenterPoint().y);
@@ -151,7 +151,7 @@ void CFPNRadarScreen::drawVerticalScale(CDC* pDC, CRect glideslopeArea, CRect tr
 	pDC->SelectObject(&axesPen);
 
 	CFont font;
-	font.CreatePointFont(100, L"Courier New Bold", pDC);
+	font.CreatePointFont(100, L"VCR OSD Mono", pDC);
 	pDC->SetTextColor(AXES_COLOUR);
 	pDC->SetTextAlign(TA_RIGHT);
 	auto* defFont = pDC->SelectObject(&font);
@@ -187,7 +187,7 @@ void CFPNRadarScreen::drawHorizontalScale(CDC* pDC, CRect glideslopeArea, CRect 
 	pDC->SelectObject(&axesPen);
 
 	CFont font;
-	font.CreatePointFont(100, L"Courier New Bold", pDC);
+	font.CreatePointFont(100, L"VCR OSD Mono", pDC);
 	pDC->SetTextColor(AXES_COLOUR);
 	pDC->SetTextAlign(TA_RIGHT);
 	auto* defFont = pDC->SelectObject(&font);
@@ -234,7 +234,7 @@ void CFPNRadarScreen::drawGlidepathAndHorizontalTicks(CDC* pDC, CRect glideslope
 	pDC->SelectObject(&axesPen);
 
 	CFont font;
-	font.CreatePointFont(120, L"Courier New Bold", pDC);
+	font.CreatePointFont(120, L"VCR OSD Mono", pDC);
 	pDC->SetTextColor(AXES_COLOUR);
 	pDC->SetTextAlign(TA_CENTER);
 	auto* defFont = pDC->SelectObject(&font);
@@ -242,13 +242,45 @@ void CFPNRadarScreen::drawGlidepathAndHorizontalTicks(CDC* pDC, CRect glideslope
 	for (int i = 0; i <= range * 2; i++) {
 		int xPos = xAxisLeft + (glideslopeArea.right - xAxisLeft) * i / (range * 2);
 		int displacement = i % 2 == 0 ? 8 : 4;
+		
 		pDC->MoveTo(xPos, xAxisHeight - displacement);  // GS
 		pDC->LineTo(xPos, xAxisHeight + displacement);
-		if (i % 2 == 0) pDC->TextOutW(xPos, xAxisHeight + 9, std::to_string(i / 2).c_str());
+		if (i <= 6) {
+			if (i % 2 == 0) pDC->TextOutW(xPos, xAxisHeight + 9, std::to_string(i / 2).c_str());
+			else {
+					std::ostringstream oss;
+					oss << std::fixed << std::setprecision(1) << ((i / 2) + 0.5);
+					pDC->TextOutW(xPos, xAxisHeight + 9, oss.str().c_str());
+				}
+							
+			}
+		else if (i % 2 == 0) pDC->TextOutW(xPos, xAxisHeight + 9, std::to_string(i / 2).c_str());
+
+
+		if (i == 8 || i == 16){
+			CPen redPen(PS_SOLID, 2, RGB(255, 0, 0));
+			CPen* pOldPen = pDC->SelectObject(&redPen);
+
+			
+			pDC->MoveTo(xPos, trackXAxisHeight - displacement); 
+			pDC->LineTo(xPos, trackXAxisHeight - displacement * 5);
+
+			pDC->SelectObject(pOldPen);
+
+		}
 
 		pDC->MoveTo(xPos, trackXAxisHeight - displacement);  // track
 		pDC->LineTo(xPos, trackXAxisHeight + displacement);
-		if (i % 2 == 0) pDC->TextOutW(xPos, trackXAxisHeight + 9, std::to_string(i / 2).c_str());
+		if (i <= 6) {
+			if (i % 2 == 0) pDC->TextOutW(xPos, trackXAxisHeight + 9, std::to_string(i / 2).c_str());
+			else {
+					std::ostringstream oss;
+					oss << std::fixed << std::setprecision(1) << ((i / 2) + 0.5);
+					pDC->TextOutW(xPos, trackXAxisHeight + 9, oss.str().c_str());
+				}
+							
+			}
+		else if (i % 2 == 0) pDC->TextOutW(xPos, trackXAxisHeight + 9, std::to_string(i / 2).c_str());
 	}
 
 	// GS Ticks
@@ -268,7 +300,7 @@ void CFPNRadarScreen::drawGlidepathAndHorizontalTicks(CDC* pDC, CRect glideslope
 
 void CFPNRadarScreen::drawInfoText(CDC* pDC, int x, int y) {
 	CFont font;
-	font.CreatePointFont(130, L"Courier New Bold", pDC);
+	font.CreatePointFont(130, L"VCR OSD Mono", pDC);
 	pDC->SetTextColor(RGB(200, 255, 211));
 	pDC->SetTextAlign(TA_LEFT);
 	auto* defFont = pDC->SelectObject(&font);

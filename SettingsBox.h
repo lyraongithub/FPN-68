@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <afxwin.h>
+#include <afxpriv.h>
 
 class SettingsBox {
 public:

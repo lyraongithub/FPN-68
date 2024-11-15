@@ -15,7 +15,7 @@ CPoint SettingsBox::Draw(CDC* pDC) {
         boxHeight = 30;
     }
     else {
-        boxHeight = 50;
+        boxHeight = 40;
     }
 
     int padding = 5;
