@@ -15,13 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="EGKKHoldingPoints.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="pch.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="EGKKHoldingPointsPlugin.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CFPNRadarScreen.cpp">
@@ -33,12 +27,18 @@
     <ClCompile Include="SettingsBox.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="FPN68.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FPN68Plugin.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="EGKKHoldingPoints.def">
+    <None Include="FPN68.def">
       <Filter>Source Files</Filter>
     </None>
-    <None Include="res\EGKKHoldingPoints.rc2">
+    <None Include="res\FPN68.rc2">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>
@@ -58,9 +58,6 @@
     <ClInclude Include="EuroScopePlugIn.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="EGKKHoldingPointsPlugin.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Constant.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -73,9 +70,12 @@
     <ClInclude Include="SettingsBox.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="FPN68Plugin.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="EGKKHoldingPoints.rc">
+    <ResourceCompile Include="FPN68.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>

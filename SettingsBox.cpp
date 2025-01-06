@@ -1,12 +1,13 @@
 #pragma once
 #include "pch.h"
 #include "SettingsBox.h"
+#include "Constant.h"
 #include <vector>
 #include <string>
 #include <sstream>
 
-SettingsBox::SettingsBox(CPoint start,const std::string& title, const std::vector<std::vector<std::string>>& text, int maxWidth, bool shortBox, bool closeBox)
-    : m_start(start),m_title(title), m_text(text), m_maxWidth(maxWidth), m_shortBox(shortBox), m_closeBox(closeBox) {}
+SettingsBox::SettingsBox(CFPNRadarScreen *parent, int objectType, CPoint start, const std::string& title, const std::vector<std::vector<CFPNRadarScreen::Setting>>& setting, int maxWidth, bool shortBox, bool closeBox)
+    : m_parent(parent), m_objectType(objectType), m_start(start),m_title(title), m_setting(setting), m_maxWidth(maxWidth), m_shortBox(shortBox), m_closeBox(closeBox) {}
 
 CPoint SettingsBox::Draw(CDC* pDC) {
     int boxHeight;
@@ -19,10 +20,10 @@ CPoint SettingsBox::Draw(CDC* pDC) {
     }
 
     int padding = 5;
-    int m_height = m_text.size();
+    int m_height = m_setting.size();
     int m_width;
     if (m_height > 0) {
-        m_width = m_text[0].size();
+        m_width = m_setting[0].size();
     }
     else {
         m_width = 0;
@@ -64,6 +65,7 @@ CPoint SettingsBox::Draw(CDC* pDC) {
     // Draw the title rectangle
     pDC->Rectangle(topRect);
     CString text(m_title.c_str());
+    pDC->SetTextColor(RGB(253, 254, 222));
     pDC->DrawText(text, topRect, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
 
     // define settings box widths
@@ -76,56 +78,91 @@ CPoint SettingsBox::Draw(CDC* pDC) {
     pDC->SelectObject(&blackPen);
     pDC->SelectObject(&blackBrush);
     // Draw boxes
-for (int row = 0; row < m_height; ++row) {
-    for (int col = 0; col < m_width; ++col) {
-        std::string text = m_text[row][col];
-        if (text.empty()) {
-            continue;
-        }
+    for (int row = 0; row < m_height; ++row) {
+        for (int col = 0; col < m_width; ++col) {
+            CFPNRadarScreen::Setting setting = m_setting[row][col];
+            if (setting.text.empty()) {
+                continue;
+            }
 
-        bool flipColors = false;
-        if (text[0] == '.') { // is the box selected
-            flipColors = true;
-            text = text.substr(1); 
-        }
+            bool flipColors = false;
+            if (setting.selected) { // is the box selected
+                flipColors = true;
+            }
 
-        int left = topRect.left + (col * boxWidth);
-        int top = topRect.bottom + (row * boxHeight);
-        int right = left + boxWidth;
-        int bottom = top + boxHeight;
+            int left = topRect.left + (col * boxWidth);
+            int top = topRect.bottom + (row * boxHeight);
+            int right = left + boxWidth;
+            int bottom = top + boxHeight;
 
-        CRect subBox(left, top, right, bottom);
-        subBox.DeflateRect(2, 2);
+            CRect subBox(left, top, right, bottom);
+            subBox.DeflateRect(2, 2);
 
-        // Set colors based on flipColors
-        COLORREF boxColor = flipColors ? RGB(253, 254, 222) : RGB(87, 86, 104);
-        COLORREF textColor = flipColors ? RGB(87, 86, 104) : RGB(253, 254, 222);
+            std::string rowcolid = std::to_string(row * 1000 + col);  // just easier than messing around with m_width/m_height
+            m_parent->AddScreenObject(m_objectType, rowcolid.c_str(), subBox, false, "");
 
-        CBrush brush(boxColor);
-        CPen pen(PS_SOLID, 1, boxColor);
+            // Set colors based on flipColors
+            COLORREF boxColor = flipColors ? RGB(253, 254, 222) : RGB(87, 86, 104);
+            COLORREF textColor = flipColors ? RGB(87, 86, 104) : RGB(253, 254, 222);
 
-        pDC->SelectObject(&pen);
-        pDC->SelectObject(&brush);
-        pDC->Rectangle(subBox);
+            CBrush brush(boxColor);
+            CPen pen(PS_SOLID, 1, boxColor);
 
-        // Split the text on '\n'
-        std::istringstream stream(text);
-        std::string line;
-        int lineCount = std::count(text.begin(), text.end(), '\n') + 1;
-        int lineHeight = subBox.Height() / lineCount;
-        int currentTop = subBox.top;
+            if (setting.hover) {
+                if (setting.inop) {
+                    CBrush outerBrush(RGB(255, 0, 0));
+                    CPen outerPen(PS_SOLID, 1, RGB(255, 0, 0));
+                    pDC->SelectObject(&outerBrush);
+                    pDC->SelectObject(&outerPen);
+                    pDC->Rectangle(subBox);
 
-        // Set text color
-        pDC->SetTextColor(textColor);
+                    // INOP text
+                    pDC->SetTextColor(RGB(253, 254, 222));
 
-        while (std::getline(stream, line)) {
-            CString cstrText(line.c_str());
-            CRect lineRect(subBox.left, currentTop, subBox.right, currentTop + lineHeight);
-            pDC->DrawText(cstrText, lineRect, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
-            currentTop += lineHeight;
+                    CString cstrText(L"INOP");
+                    CRect lineRect(subBox.left, subBox.top, subBox.right, subBox.top + subBox.Height());
+                    pDC->DrawText(cstrText, lineRect, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+
+                    continue;
+                }
+                else {
+                    CBrush outerBrush(textColor);
+                    CPen outerPen(PS_SOLID, 1, textColor);
+                    pDC->SelectObject(&outerBrush);
+                    pDC->SelectObject(&outerPen);
+                    pDC->Rectangle(subBox);
+
+                    subBox.DeflateRect(3, 3);
+                    pDC->SelectObject(&pen);
+                    pDC->SelectObject(&brush);
+                    pDC->Rectangle(subBox);
+                    subBox.InflateRect(3, 3);
+                }
+            }
+            else {
+                pDC->SelectObject(&pen);
+                pDC->SelectObject(&brush);
+                pDC->Rectangle(subBox);
+            }
+
+            // Split the text on '\n'
+            std::istringstream stream(setting.text);
+            std::string line;
+            int lineCount = std::count(setting.text.begin(), setting.text.end(), '\n') + 1;
+            int lineHeight = subBox.Height() / lineCount;
+            int currentTop = subBox.top;
+
+            // Set text color
+            pDC->SetTextColor(textColor);
+
+            while (std::getline(stream, line)) {
+                CString cstrText(line.c_str());
+                CRect lineRect(subBox.left, currentTop, subBox.right, currentTop + lineHeight);
+                pDC->DrawText(cstrText, lineRect, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+                currentTop += lineHeight;
+            }
         }
     }
-}
 
     // Restore the old pen and brush
     pDC->SelectObject(oldPen);

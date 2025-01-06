@@ -9,6 +9,7 @@
 #include <iomanip>
 #include <cmath>
 #include <afxwin.h>
+#include <map>
 
 CFPNRadarScreen::CFPNRadarScreen() {
 
@@ -32,7 +33,8 @@ void CFPNRadarScreen::OnRefresh(HDC hDC, int Phase) {
 
 	CRect radarArea = GetRadarArea();
 
-	dc.FillRect(radarArea, &CBrush(BACKGROUND_COLOUR));
+	CBrush brush(BACKGROUND_COLOUR);
+	dc.FillRect(radarArea, &brush);
 
 	//CRect chatArea = GetChatArea();
 	radarArea.DeflateRect(70, 50);  // margins
@@ -113,7 +115,102 @@ void CFPNRadarScreen::OnRefresh(HDC hDC, int Phase) {
 	CFPNRadarTarget targetPlot = CFPNRadarTarget(pos, altitude, runwayThreshold, runwayThreshold.DirectionTo(otherThreshold), range, 3.0f, glideslopeArea, trackArea);
 	targetPlot.draw(&dc, (CFPNPlugin*)GetPlugIn());*/
 
+	// now we put everything back
+
+	for (auto item : { &mainControlsText, &rangeControlsText, &glideControlsText, &displayControlsText, &radarControlsText, &runwayControlsText }) {
+		for (int i = 0; i < item->size(); i++) {
+			for (int j = 0; j < item->at(i).size(); j++) {
+				item->at(i)[j].hover = false;
+			}
+		}
+	}
+
 	dc.Detach();
+}
+
+void CFPNRadarScreen::OnOverScreenObject(int ObjectType, const char* sObjectId, POINT Pt, RECT Area) {
+	std::vector<std::vector<Setting>>* currentControls;
+	switch (ObjectType) {
+	case SETTINGS_OBJECT_MAIN_CONTROLS:
+		currentControls = &mainControlsText;
+		break;
+	case SETTINGS_OBJECT_RANGE_CONTROLS: 
+		currentControls = &rangeControlsText;
+		break;
+	case SETTINGS_OBJECT_GLIDE_CONTROLS: 
+		currentControls = &glideControlsText;
+		break;
+	case SETTINGS_OBJECT_DISPLAY_CONTROLS: 
+		currentControls = &displayControlsText;
+		break;
+	case SETTINGS_OBJECT_RADAR_CONTROLS: 
+		currentControls = &radarControlsText;
+		break;
+	case SETTINGS_OBJECT_RUNWAY_CONTROLS: 
+		currentControls = &runwayControlsText;
+		break;
+	default: return;  // OH DEAR
+	}
+
+	int rowColId = std::atoi(sObjectId);
+	int row = rowColId / 1000;
+	int col = rowColId % 1000;
+
+	currentControls->at(row).at(col).hover = true;
+
+	RequestRefresh();
+}
+
+void CFPNRadarScreen::rangeChangeHandler(int range, CFPNRadarScreen* parent) {
+	((CFPNPlugin*)(parent->GetPlugIn()))->range = range;
+	std::map<int, int> m{ {1,2}, {3,3}, {5, 1000}, {10, 1001}, {15, 1002}, {20, 1003} };
+	int newlyActive = m[range];
+	for (int i = 0; i < parent->rangeControlsText.size(); i++) {
+		for (int j = 0; j < parent->rangeControlsText[i].size(); j++) {
+			if (i != newlyActive / 1000 || j != newlyActive % 1000) {
+				parent->rangeControlsText[i][j].selected = false;
+			}
+		}
+	}
+}
+
+void CFPNRadarScreen::OnClickScreenObject(int ObjectType, const char* sObjectId, POINT Pt, RECT Area, int Button) {
+	std::vector<std::vector<Setting>>* currentControls;
+	switch (ObjectType) {
+	case SETTINGS_OBJECT_MAIN_CONTROLS:
+		currentControls = &mainControlsText;
+		break;
+	case SETTINGS_OBJECT_RANGE_CONTROLS:
+		currentControls = &rangeControlsText;
+		break;
+	case SETTINGS_OBJECT_GLIDE_CONTROLS:
+		currentControls = &glideControlsText;
+		break;
+	case SETTINGS_OBJECT_DISPLAY_CONTROLS:
+		currentControls = &displayControlsText;
+		break;
+	case SETTINGS_OBJECT_RADAR_CONTROLS:
+		currentControls = &radarControlsText;
+		break;
+	case SETTINGS_OBJECT_RUNWAY_CONTROLS:
+		currentControls = &runwayControlsText;
+		break;
+	default: return;  // OH DEAR
+	}
+
+	int rowColId = std::atoi(sObjectId);
+	int row = rowColId / 1000;
+	int col = rowColId % 1000;
+
+	currentControls->at(row).at(col).selected = !currentControls->at(row).at(col).selected;
+
+	if (currentControls->at(row).at(col).selected) {
+		if (currentControls->at(row).at(col).handler != nullptr) {
+			currentControls->at(row).at(col).handler(this);
+		}
+	}
+
+	RequestRefresh();
 }
 
 void CFPNRadarScreen::drawGSAxes(CDC *pDC, CRect area) {
@@ -354,60 +451,26 @@ void CFPNRadarScreen::drawSettingsBox(CDC* pDC, CRect radarArea, CRect axesArea)
 	int width = settingsBoxArea.right - settingsBoxArea.left;
 
 	// Main controls
-	std::vector<std::vector<std::string>> mainControlsText = {
-		{"Reset\nDefault", ".Small\nA/C", "Large\nA/C"},
-		{"Runway\nSelect", "", "Display\nControl"},
-		{"Radar\nControl", "PPI\nMode","WHI Tst\nCycle"},
-		{"Clear\nAlerts", "Status","ACID\nEntry"}
-	};
-	SettingsBox mainControls(freeSpace,"Main Controls                        RPS",mainControlsText,width);
+	SettingsBox mainControls(this, SETTINGS_OBJECT_MAIN_CONTROLS, freeSpace, "Main Controls                        RPS", mainControlsText, width);
 	freeSpace = mainControls.Draw(pDC);
 
 	// Range Controls
-	std::vector<std::vector<std::string>> rangeControlsText = {
-		{"\u2190", "\u2192", "1","3"},
-		{"5", ".10", "15","20"},
-	};
-	SettingsBox rangeScale(freeSpace, "Range Scale (nmi)",rangeControlsText,width, true);
+	SettingsBox rangeScale(this, SETTINGS_OBJECT_RANGE_CONTROLS, freeSpace, "Range Scale (nmi)", rangeControlsText, width, true);
 	freeSpace = rangeScale.Draw(pDC);
 
 	// GlideSlope / DescHight
-	std::vector<std::vector<std::string>> glideControlsText = {
-		{".3.0", "2.5", "3.0","GS"},
-		{".210", "200", "210","DH"},
-	};
-	SettingsBox glide(freeSpace, "GLide Slope / Decsn Hgt", glideControlsText, width, true);
+	SettingsBox glide(this, SETTINGS_OBJECT_GLIDE_CONTROLS, freeSpace, "Glide Slope / Decsn Hgt", glideControlsText, width, true);
 	freeSpace = glide.Draw(pDC);
 
 	// Display Controls
-	std::vector<std::vector<std::string>> displayControlsText = {
-		{".Wx", "Obs", ".Map","WHI"},
-		{".Hist", ".Radar\nCover", "Syn\nVideo",".Bird\nAreas"},
-		{"Sel\nDBFld", "Lead\nDir", "Color\nLegnd",""},
-		{"Az\nScale", "El\nScale", "Az\nOffst","Text\nSize"},
-		{"Clear\nHist", "Set #\nHist", "","Shut\nDown"}
-	};
-	SettingsBox display(freeSpace, "Display Controls", displayControlsText, width, false,true);
+	SettingsBox display(this, SETTINGS_OBJECT_DISPLAY_CONTROLS, freeSpace, "Display Controls", displayControlsText, width, false,true);
 	freeSpace = display.Draw(pDC);
 
 	// Radar Controls
-	std::vector<std::vector<std::string>> radarControlsText = {
-		{"Maint\nMode", ".Ant.\nDrive", ".Rad-\niate",""},
-		{"", "", "", ""},
-		{".Rain\nMode", "AzAnt\nElev", "ElAnt\nAzim","STC"},
-		};
-	SettingsBox radar(freeSpace, "Radar Controls", radarControlsText, width, false, true);
+	SettingsBox radar(this, SETTINGS_OBJECT_RADAR_CONTROLS, freeSpace, "Radar Controls", radarControlsText, width, false, true);
 	freeSpace = radar.Draw(pDC);
 
 	// Runway Controls
-	std::vector<std::vector<std::string>> runwayControlsText = {
-		{"07", ".25", " "," "},
-		{" ", " ", " ", " "},
-	};
-	SettingsBox runway(freeSpace, "Select Runway", runwayControlsText, width, true, true);
+	SettingsBox runway(this, SETTINGS_OBJECT_RUNWAY_CONTROLS, freeSpace, "Select Runway", runwayControlsText, width, true, true);
 	freeSpace = runway.Draw(pDC);
-
-
-
-
 }

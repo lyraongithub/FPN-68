@@ -116,8 +116,6 @@ void CFPNRadarTarget::updatePosition(EuroScopePlugIn::CPosition pos,int groundSp
 		pastPositions.push_back(std::tuple<EuroScopePlugIn::CPosition, int, SYSTEMTIME>(newPos, altitude + newDeltaAlt, posAltTime)); 
 	}
 	
-
-	
 	if (pastPositions.size() > 5) {
 		pastPositions.erase(pastPositions.begin());
 	}
