@@ -9,11 +9,37 @@
 #include <windows.h>
 #include <tchar.h>
 
-void LoadCustomFont() {
-    HRSRC hRes = FindResource(NULL, MAKEINTRESOURCE(IDR_VCRFONT), _T("TTF"));
+void CFPNPlugin::LoadCustomFont() {
+	/*sendMessage("o");
+	HINSTANCE hResInstance = (HINSTANCE)GetModuleHandle(NULL);
+	HRSRC res = ::FindResource(hResInstance, MAKEINTRESOURCE(IDR_VCRFONT), L"BINARY");
+	std::ostringstream os;
+	os << GetLastError();
+	sendMessage(os.str());
+	if (res) {
+		sendMessage("woo");
+	}*/
+
+	HMODULE m;
+	GetModuleHandleExA(NULL, "FPN68.dll", &m);
+	std::ostringstream es;
+	es << GetLastError();
+	sendMessage(es.str());
+
+    HRSRC hRes = FindResource(NULL, MAKEINTRESOURCE(IDR_VCRFONT), RT_FONT);
+	std::ostringstream os;
+	os << GetLastError();
+	sendMessage(os.str());
+
+	hRes = FindResource(m, MAKEINTRESOURCE(IDR_VCRFONT), RT_FONT);
+	std::ostringstream as;
+	as << GetLastError();
+	sendMessage(as.str());
     if (hRes) {
-        HGLOBAL hMem = LoadResource(NULL, hRes);
+		sendMessage("POTATO");
+        HGLOBAL hMem = LoadResource(AfxGetInstanceHandle(), hRes);
         if (hMem) {
+			
             DWORD dwSize = SizeofResource(NULL, hRes);
             void* pFontData = LockResource(hMem);
             if (pFontData) {
@@ -50,6 +76,7 @@ EuroScopePlugIn::CRadarScreen* CFPNPlugin::OnRadarScreenCreated(const char* sDis
 	else {
 		CFPNRadarScreen* radarScreen = new CFPNRadarScreen;
 		radarScreen->setElevation(this->getElevation());
+		radarScreens.push_back(radarScreen);
 		return radarScreen;
 	}
 }
@@ -75,36 +102,30 @@ bool CFPNPlugin::OnCompileCommand(const char* sCommandLine) {
 		if (command.length() > 4) {
 			std::string payload = command.substr(5);
 
-			if (payload.find(' ') != std::string::npos) {
-				if (payload.length() >= 7) {
-					std::string airport = payload.substr(0, 4);
-					std::string runway = payload.substr(5);
-					sendMessage("Changing airport");
-					sendMessage(airport.c_str());
-					sendMessage(runway.c_str());
-					loadNewAerodrome(airport.c_str(), runway.c_str());
-					return true;
-				}
+			if (payload.empty()) {
+				sendMessage("Command was empty");
+				return false;
 			}
-			else {
-				if (payload.empty()) {
-					sendMessage("Command was empty");
-					return false;
-				}
 
-				bool isNum = true;
-				for (char c : payload) {
-					if (!isdigit(c)) {
-						isNum = false;
-						sendMessage("Enter a numerical range");
-						return false;
+			icao = payload.c_str();
+			std::vector<std::string> runways = getAerodromeRunways(payload.c_str());
+			while (runways.size() < 6) {
+				runways.push_back(" ");
+			}
+
+			for (int i = 0; i < radarScreens.size(); i++) {
+				for (int j = 0; j < 6; j++) {
+					((CFPNRadarScreen *) radarScreens[i])->runwayControlsText[j / 3][j % 3].text = runways[j];
+					if (runways[j] == " ") {
+						((CFPNRadarScreen*)radarScreens[i])->runwayControlsText[j / 3][j % 3].inop = true;
+					}
+					else {
+						((CFPNRadarScreen*)radarScreens[i])->runwayControlsText[j / 3][j % 3].inop = false;
 					}
 				}
-				if (isNum) {
-					range = std::stoi(payload);
-					return true;
-				}
 			}
+
+			return true;
 		}
 		else {
 			sendMessage("Command was empty");
@@ -158,5 +179,19 @@ void CFPNPlugin::loadNewAerodrome(const char* icao, const char* runway) {
 	}
 }
 
+std::vector<std::string> CFPNPlugin::getAerodromeRunways(const char* icao) {
+	EuroScopePlugIn::CSectorElement elem = SectorFileElementSelectFirst(EuroScopePlugIn::SECTOR_ELEMENT_RUNWAY);
 
+	std::vector<std::string> runways;
 
+	do {
+		if (strncmp(elem.GetAirportName(), icao, 4) == 0) {
+			runways.push_back(elem.GetRunwayName(0));
+			runways.push_back(elem.GetRunwayName(1));
+		}
+
+		elem = SectorFileElementSelectNext(elem, EuroScopePlugIn::SECTOR_ELEMENT_RUNWAY);
+	} while (elem.IsValid());
+
+	return runways;
+}

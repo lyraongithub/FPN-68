@@ -11,6 +11,8 @@ public:
     CFPNPlugin();
     virtual ~CFPNPlugin();
 
+    void LoadCustomFont();
+
     virtual EuroScopePlugIn::CRadarScreen* OnRadarScreenCreated(const char* sDisplayName,
         bool NeedRadarContent,
         bool GeoReferenced,
@@ -36,7 +38,11 @@ public:
     EuroScopePlugIn::CPosition runwayThreshold;
     EuroScopePlugIn::CPosition otherThreshold;
 
-private:
+    std::string icao;
     void loadNewAerodrome(const char* icao, const char* runway);
-};
+private:
+    std::vector<void *> radarScreens;  // CFPNRadarScreen *
 
+    
+    std::vector<std::string> getAerodromeRunways(const char* icao);
+};

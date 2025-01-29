@@ -33,21 +33,10 @@ public:
         bool hover;
         bool inop;
         Handler handler;
-        //void (*handler)(CFPNRadarScreen*);
     };
 
     static void rangeChangeHandler(int range, CFPNRadarScreen* parent);
-
-private:
-    void drawGSAxes(CDC *pDC, CRect area);
-    void drawTrackAxes(CDC* pDC, CRect area);
-    void drawInfoText(CDC *pDC, int x, int y);
-    void drawVerticalScale(CDC *pDC, CRect glideslopeArea, CRect trackArea, int range);
-    void drawHorizontalScale(CDC* pDC, CRect glideslopeArea, CRect trackArea, int range);
-    void drawGlidepathAndHorizontalTicks(CDC *pDC, CRect glideslopeArea, CRect trackArea, int range, float angle);  // tan(theta) * 6076 * range = alt at that range
-    void drawSettingsBox(CDC* pDC, CRect radarArea,CRect axesArea);
-
-    float elevation;
+    static void runwayChangeHandler(int i, int j, CFPNRadarScreen* parent);
 
     std::vector<std::vector<Setting>> mainControlsText = {
         {{"Reset\nDefault", false, false, true, nullptr}, {"Small\nA/C", true, false, true, nullptr}, {"Large\nA/C", false, false, true, nullptr}},
@@ -76,8 +65,19 @@ private:
         {{"Rain\nMode", true, false, true, nullptr}, {"AzAnt\nElev", false, false, true, nullptr}, {"ElAnt\nAzim", false, false, true, nullptr}, {"STC", false, false, true, nullptr}},
     };
     std::vector<std::vector<Setting>> runwayControlsText = {
-        {{"07", false, false, true, nullptr}, {"25", true, false, true, nullptr}, {" ", false, false, true, nullptr}},
-        {{" ", false, false, true, nullptr}, {" ", false, false, true, nullptr}, {" ", false, false, true, nullptr}}
+        {{"Select", false, false, true, [](CFPNRadarScreen* parent) { runwayChangeHandler(0, 0, parent); }}, {"aerodrome", true, false, true, [](CFPNRadarScreen* parent) { runwayChangeHandler(0, 1, parent); }}, {"with", false, false, true, [](CFPNRadarScreen* parent) { runwayChangeHandler(0, 2, parent); }}},
+        {{".fpn", false, false, true, [](CFPNRadarScreen* parent) { runwayChangeHandler(1, 0, parent); }}, {"ICAO", false, false, true, [](CFPNRadarScreen* parent) { runwayChangeHandler(1, 1, parent); }}, {" ", false, false, true, [](CFPNRadarScreen* parent) { runwayChangeHandler(1, 2, parent); }}}
     };
+
+private:
+    void drawGSAxes(CDC *pDC, CRect area);
+    void drawTrackAxes(CDC* pDC, CRect area);
+    void drawInfoText(CDC *pDC, int x, int y);
+    void drawVerticalScale(CDC *pDC, CRect glideslopeArea, CRect trackArea, int range);
+    void drawHorizontalScale(CDC* pDC, CRect glideslopeArea, CRect trackArea, int range);
+    void drawGlidepathAndHorizontalTicks(CDC *pDC, CRect glideslopeArea, CRect trackArea, int range, float angle);  // tan(theta) * 6076 * range = alt at that range
+    void drawSettingsBox(CDC* pDC, CRect radarArea,CRect axesArea);
+
+    float elevation;
 };
 

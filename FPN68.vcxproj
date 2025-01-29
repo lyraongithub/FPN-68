@@ -134,8 +134,8 @@
       <SubSystem>Windows</SubSystem>
       <ModuleDefinitionFile>
       </ModuleDefinitionFile>
-      <AdditionalDependencies>D:\Vatsim uk code stuff\PARFPNRadar\EuroScopePlugInDll.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>D:\Vatsim uk code stuff\PARFPNRadar\EuroscopePlugInDll.lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>C:\Users\olive\AppData\Roaming\EuroScope\UK\Data\Plugin\dev\FPNBW\FPN-68\EuroScopePlugInDll.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Users\olive\AppData\Roaming\EuroScope\UK\Data\Plugin\dev\FPNBW\FPN-68\EuroscopePlugInDll.lib</AdditionalLibraryDirectories>
     </Link>
     <Midl>
       <MkTypLibCompatible>false</MkTypLibCompatible>

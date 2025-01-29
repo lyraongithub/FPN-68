@@ -174,6 +174,17 @@ void CFPNRadarScreen::rangeChangeHandler(int range, CFPNRadarScreen* parent) {
 	}
 }
 
+void CFPNRadarScreen::runwayChangeHandler(int r, int c, CFPNRadarScreen* parent) {
+	((CFPNPlugin*)(parent->GetPlugIn()))->loadNewAerodrome(((CFPNPlugin*)(parent->GetPlugIn()))->icao.c_str(), parent->runwayControlsText[r][c].text.c_str());
+
+	for (int i = 0; i < parent->runwayControlsText.size(); i++) {
+		for (int j = 0; j < parent->runwayControlsText[i].size(); j++) {
+			if (r == i && c == j) parent->runwayControlsText[i][j].selected = true;
+			else parent->runwayControlsText[i][j].selected = false;
+		}
+	}
+}
+
 void CFPNRadarScreen::OnClickScreenObject(int ObjectType, const char* sObjectId, POINT Pt, RECT Area, int Button) {
 	std::vector<std::vector<Setting>>* currentControls;
 	switch (ObjectType) {
