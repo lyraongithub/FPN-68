@@ -427,12 +427,16 @@ void CFPNRadarScreen::drawInfoText(CDC* pDC, int x, int y) {
 	pDC->SetTextAlign(TA_LEFT);
 	auto* defFont = pDC->SelectObject(&font);
 
-	std::string text = "GS: 3.0  RWY: ";
+	std::stringstream gsAngle;
+	std::string text = "GS: ";
+	gsAngle << std::fixed << std::setprecision(1) << ((CFPNPlugin*)GetPlugIn())->angle;
+	text += gsAngle.str();
 
+	text += "     RWY: ";
 	std::stringstream stream;
 	stream << std::fixed << std::setprecision(1) << ((CFPNPlugin*)GetPlugIn())->runwayThreshold.DirectionTo(((CFPNPlugin*)GetPlugIn())->otherThreshold);
-
 	text += stream.str();
+
 	text += "  DH: 200FT     TIME : ";
 
 	SYSTEMTIME st;
